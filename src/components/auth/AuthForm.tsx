@@ -2,10 +2,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { authService } from '@/services/authService';
 
 interface AuthFormProps {
   activeTab: 'login' | 'signup';
@@ -13,7 +14,6 @@ interface AuthFormProps {
 }
 
 export const AuthForm = ({ activeTab, setActiveTab }: AuthFormProps) => {
-  const { toast } = useToast();
   const navigate = useNavigate();
   
   const [showPassword, setShowPassword] = useState(false);
@@ -33,24 +33,34 @@ export const AuthForm = ({ activeTab, setActiveTab }: AuthFormProps) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate API request
-    setTimeout(() => {
-      setLoading(false);
-      
+    try {
       if (activeTab === 'login') {
-        toast({
-          title: "Login successful!",
-          description: "Welcome back to Locked.in",
-        });
+        const result = await authService.login(formData.email, formData.password);
+        
+        if (result.success) {
+          navigate('/dashboard');
+        } else {
+          toast.error(result.message || "Login failed. Please try again.");
+        }
       } else {
-        toast({
-          title: "Account created!",
-          description: "Welcome to Locked.in",
-        });
+        const result = await authService.register(
+          formData.name, 
+          formData.email, 
+          formData.password
+        );
+        
+        if (result.success) {
+          navigate('/dashboard');
+        } else {
+          toast.error(result.message || "Registration failed. Please try again.");
+        }
       }
-      
-      navigate('/dashboard');
-    }, 1000);
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -190,13 +200,22 @@ export const AuthForm = ({ activeTab, setActiveTab }: AuthFormProps) => {
             Or continue with
           </p>
           <div className="flex gap-4 mt-4 justify-center">
-            <button className="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center border border-glow-green/20 hover:border-glow-green/50 transition-colors">
+            <button 
+              className="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center border border-glow-green/20 hover:border-glow-green/50 transition-colors"
+              onClick={() => toast.info("Google authentication coming soon!")}
+            >
               G
             </button>
-            <button className="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center border border-glow-green/20 hover:border-glow-green/50 transition-colors">
+            <button 
+              className="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center border border-glow-green/20 hover:border-glow-green/50 transition-colors"
+              onClick={() => toast.info("Facebook authentication coming soon!")}
+            >
               f
             </button>
-            <button className="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center border border-glow-green/20 hover:border-glow-green/50 transition-colors">
+            <button 
+              className="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center border border-glow-green/20 hover:border-glow-green/50 transition-colors"
+              onClick={() => toast.info("LinkedIn authentication coming soon!")}
+            >
               in
             </button>
           </div>

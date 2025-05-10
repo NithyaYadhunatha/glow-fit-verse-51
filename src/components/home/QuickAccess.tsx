@@ -1,6 +1,7 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Dumbbell, HeartPulse, Newspaper, Trophy, Utensils } from 'lucide-react';
+import { toast } from 'sonner';
 
 type QuickAccessTile = {
   id: string;
@@ -9,9 +10,12 @@ type QuickAccessTile = {
   icon: React.ElementType;
   path: string;
   color: string;
+  requiresAuth?: boolean;
 };
 
 export const QuickAccess = () => {
+  const navigate = useNavigate();
+  
   const tiles: QuickAccessTile[] = [
     {
       id: 'fitness',
@@ -44,13 +48,14 @@ export const QuickAccess = () => {
       icon: Trophy,
       path: '/leaderboard',
       color: 'from-yellow-500/20 to-black/20 hover:from-yellow-500/30',
+      requiresAuth: true,
     },
     {
       id: 'health',
       title: 'Health Stats',
       description: 'Track vital metrics',
       icon: HeartPulse,
-      path: '/health',
+      path: '/wellness',
       color: 'from-glow-red/20 to-black/20 hover:from-glow-red/30',
     },
     {
@@ -63,6 +68,16 @@ export const QuickAccess = () => {
     },
   ];
 
+  const handleTileClick = (tile: QuickAccessTile) => {
+    if (tile.path === '/health') {
+      // Redirect to the wellness page instead
+      navigate('/wellness');
+      return;
+    }
+    
+    navigate(tile.path);
+  };
+
   return (
     <section className="py-10">
       <div className="container mx-auto px-4">
@@ -70,10 +85,10 @@ export const QuickAccess = () => {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {tiles.map((tile) => (
-            <Link
+            <div
               key={tile.id}
-              to={tile.path}
-              className={`glass-card bg-gradient-to-br ${tile.color} p-6 rounded-lg border border-white/10 transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+              onClick={() => handleTileClick(tile)}
+              className={`glass-card bg-gradient-to-br ${tile.color} p-6 rounded-lg border border-white/10 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer`}
             >
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-lg bg-black/40 border border-white/10">
@@ -84,7 +99,7 @@ export const QuickAccess = () => {
                   <p className="text-gray-400 text-sm">{tile.description}</p>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>

@@ -1,6 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Activity, Droplets, PieChart, Timer, Zap } from 'lucide-react';
+import { toast } from 'sonner';
 
 type FitnessCard = {
   id: string;
@@ -61,10 +62,59 @@ export const FitnessCards = () => {
     },
   ]);
 
-  const updateCardValue = (id: string, newValue: number | string) => {
-    setCards(cards.map(card => 
-      card.id === id ? { ...card, value: newValue } : card
-    ));
+  // Simulate real-time updates
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // Randomly select a card to update
+      const randomIndex = Math.floor(Math.random() * cards.length);
+      const cardToUpdate = { ...cards[randomIndex] };
+      
+      // Update the value based on the card type
+      switch (cardToUpdate.id) {
+        case 'steps':
+          cardToUpdate.value = Math.floor(Number(cardToUpdate.value) + Math.random() * 50);
+          cardToUpdate.progress = Math.min(100, Math.floor((Number(cardToUpdate.value) / 10000) * 100));
+          break;
+        case 'water':
+          cardToUpdate.value = Math.min(3, Number(cardToUpdate.value) + Math.random() * 0.1).toFixed(1);
+          cardToUpdate.progress = Math.min(100, Math.floor((Number(cardToUpdate.value) / 3) * 100));
+          break;
+        case 'calories':
+          cardToUpdate.value = Math.floor(Number(cardToUpdate.value) + Math.random() * 20);
+          cardToUpdate.progress = Math.min(100, Math.floor((Number(cardToUpdate.value) / 3000) * 100));
+          break;
+        case 'active':
+          const minutes = parseInt(cardToUpdate.value.toString().split(':')[0]) * 60 + 
+                         parseInt(cardToUpdate.value.toString().split(':')[1]);
+          const newMinutes = minutes + Math.floor(Math.random() * 5);
+          const hours = Math.floor(newMinutes / 60);
+          const mins = newMinutes % 60;
+          cardToUpdate.value = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+          cardToUpdate.progress = Math.min(100, Math.floor((newMinutes / 150) * 100));
+          break;
+        case 'points':
+          cardToUpdate.value = Math.floor(Number(cardToUpdate.value) + Math.random() * 15);
+          cardToUpdate.progress = Math.min(100, Math.floor((Number(cardToUpdate.value) / 3000) * 100));
+          break;
+      }
+      
+      // Update the card in state
+      const updatedCards = [...cards];
+      updatedCards[randomIndex] = cardToUpdate;
+      setCards(updatedCards);
+    }, 10000); // Update every 10 seconds
+    
+    return () => clearInterval(intervalId);
+  }, [cards]);
+
+  const handleCardClick = (card: FitnessCard) => {
+    toast.info(`${card.title} details coming soon`, {
+      description: `Current value: ${card.value} ${card.unit}`
+    });
+  };
+
+  const handleAddNewCard = () => {
+    toast.info("Add new card feature coming soon");
   };
 
   return (
@@ -76,7 +126,7 @@ export const FitnessCards = () => {
             <p className="text-gray-400">Daily stats and progress</p>
           </div>
           <div className="mt-4 md:mt-0">
-            <button className="btn-glow text-sm">Add New Card</button>
+            <button className="btn-glow text-sm" onClick={handleAddNewCard}>Add New Card</button>
           </div>
         </div>
         
@@ -85,6 +135,7 @@ export const FitnessCards = () => {
             <div 
               key={card.id} 
               className={`glass-card p-4 rounded-lg border-t-2 ${card.color} hover:shadow-lg hover:shadow-${card.color}/20 transition-all duration-300 cursor-pointer`}
+              onClick={() => handleCardClick(card)}
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="p-2 rounded-md bg-black/50">

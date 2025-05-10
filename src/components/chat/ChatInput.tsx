@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { Send, Mic, Paperclip } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -18,11 +19,20 @@ export const ChatInput = ({ onSendMessage, loading }: ChatInputProps) => {
     }
   };
   
+  const handleMicClick = () => {
+    toast.info("Voice input coming soon");
+  };
+  
+  const handleAttachmentClick = () => {
+    toast.info("File attachment coming soon");
+  };
+  
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-2">
       <button
         type="button"
         className="p-2 rounded-full bg-black/30 border border-glow-green/20 text-gray-400 hover:text-white transition-colors"
+        onClick={handleAttachmentClick}
       >
         <Paperclip size={18} />
       </button>
@@ -41,6 +51,7 @@ export const ChatInput = ({ onSendMessage, loading }: ChatInputProps) => {
       <button
         type="button"
         className="p-2 rounded-full bg-black/30 border border-glow-green/20 text-gray-400 hover:text-white transition-colors"
+        onClick={handleMicClick}
       >
         <Mic size={18} />
       </button>

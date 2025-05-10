@@ -1,35 +1,124 @@
 
+import { useState, useEffect } from 'react';
 import { Navbar } from "../components/layout/Navbar";
 import { Footer } from "../components/layout/Footer";
 import { AiAssistant } from "../components/ui/AiAssistant";
 import { Utensils, Calculator, PlusCircle, Activity } from "lucide-react";
-import { useState } from "react";
+import { nutritionService, MealPlan } from "@/services/nutritionService";
+import { toast } from "sonner";
 
 const Nutrition = () => {
-  const [activeTab, setActiveTab] = useState('weight-loss');
-  
-  const mealPlans = {
-    'weight-loss': [
-      { name: 'Lean Protein Breakfast', calories: 320, protein: 25, carbs: 15, fats: 12 },
-      { name: 'Green Smoothie Snack', calories: 180, protein: 5, carbs: 20, fats: 5 },
-      { name: 'Grilled Chicken Salad', calories: 350, protein: 30, carbs: 12, fats: 10 },
-      { name: 'Protein Bar', calories: 220, protein: 15, carbs: 22, fats: 8 },
-      { name: 'Baked Salmon with Veggies', calories: 420, protein: 32, carbs: 25, fats: 15 }
-    ],
-    'muscle-gain': [
-      { name: 'Protein Oats with Banana', calories: 520, protein: 35, carbs: 60, fats: 12 },
-      { name: 'Greek Yogurt with Berries', calories: 280, protein: 20, carbs: 30, fats: 8 },
-      { name: 'Chicken Rice Bowl', calories: 650, protein: 45, carbs: 70, fats: 15 },
-      { name: 'Protein Shake', calories: 320, protein: 30, carbs: 25, fats: 5 },
-      { name: 'Steak with Sweet Potato', calories: 720, protein: 50, carbs: 65, fats: 25 }
-    ],
-    'athletic-performance': [
-      { name: 'Avocado Toast with Eggs', calories: 420, protein: 22, carbs: 35, fats: 18 },
-      { name: 'Trail Mix', calories: 240, protein: 8, carbs: 26, fats: 12 },
-      { name: 'Mediterranean Bowl', calories: 580, protein: 28, carbs: 65, fats: 20 },
-      { name: 'Banana with Nut Butter', calories: 250, protein: 8, carbs: 30, fats: 12 },
-      { name: 'Fish Tacos', calories: 480, protein: 32, carbs: 45, fats: 15 }
-    ]
+  const [activeTab, setActiveTab] = useState<'weight-loss' | 'muscle-gain' | 'athletic-performance'>('weight-loss');
+  const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    age: 30,
+    gender: 'Male',
+    height: 170,
+    weight: 70,
+    activityLevel: 'Moderately Active',
+    goal: 'Lose Weight'
+  });
+  const [calorieResult, setCalorieResult] = useState({
+    calories: 2340,
+    protein: 140,
+    carbs: 250,
+    fats: 65
+  });
+
+  // Fetch meal plans when component mounts or active tab changes
+  useEffect(() => {
+    const fetchMealPlans = async () => {
+      try {
+        setLoading(true);
+        const plans = await nutritionService.getMealPlans(activeTab);
+        setMealPlans(plans);
+      } catch (error) {
+        console.error('Failed to fetch meal plans:', error);
+        toast.error('Failed to load meal plans');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchMealPlans();
+  }, [activeTab]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCalculate = () => {
+    // Simple BMR calculation (for demo purposes)
+    const { age, gender, height, weight, activityLevel, goal } = formData;
+    let bmr = 0;
+    
+    if (gender === 'Male') {
+      bmr = 10 * Number(weight) + 6.25 * Number(height) - 5 * Number(age) + 5;
+    } else {
+      bmr = 10 * Number(weight) + 6.25 * Number(height) - 5 * Number(age) - 161;
+    }
+    
+    // Apply activity multiplier
+    let tdee = bmr;
+    switch (activityLevel) {
+      case 'Sedentary':
+        tdee *= 1.2;
+        break;
+      case 'Lightly Active':
+        tdee *= 1.375;
+        break;
+      case 'Moderately Active':
+        tdee *= 1.55;
+        break;
+      case 'Very Active':
+        tdee *= 1.725;
+        break;
+      case 'Extremely Active':
+        tdee *= 1.9;
+        break;
+    }
+    
+    // Adjust for goal
+    let finalCalories = tdee;
+    switch (goal) {
+      case 'Lose Weight':
+        finalCalories *= 0.85; // 15% deficit
+        break;
+      case 'Maintain Weight':
+        // No change
+        break;
+      case 'Gain Weight':
+        finalCalories *= 1.15; // 15% surplus
+        break;
+    }
+    
+    // Calculate macros
+    const protein = Math.round((finalCalories * 0.25) / 4); // 25% of calories, 4 calories per gram
+    const fats = Math.round((finalCalories * 0.25) / 9); // 25% of calories, 9 calories per gram
+    const carbs = Math.round((finalCalories * 0.5) / 4); // 50% of calories, 4 calories per gram
+    
+    setCalorieResult({
+      calories: Math.round(finalCalories),
+      protein,
+      carbs,
+      fats
+    });
+    
+    toast.success("Calorie needs calculated!");
+  };
+
+  const handleAddCustomMeal = () => {
+    toast.info("Add custom meal feature coming soon!");
+  };
+
+  const handleEditMeal = (meal: any) => {
+    toast.info(`Edit ${meal.name} coming soon!`);
+  };
+
+  const handleMealDetails = (meal: any) => {
+    toast.info(`Details for ${meal.name} coming soon!`);
   };
 
   return (
@@ -89,44 +178,63 @@ const Nutrition = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mealPlans[activeTab as keyof typeof mealPlans].map((meal, index) => (
+          {loading ? (
+            <div className="text-center py-10">
+              <p className="text-gray-400">Loading meal plans...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mealPlans.length > 0 && mealPlans[0].meals.map((meal, index) => (
+                <div 
+                  key={index} 
+                  className="glow-card p-6 group hover:border-glow-green transition-all duration-300"
+                >
+                  <h3 className="text-xl font-semibold mb-2">{meal.name}</h3>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="bg-black/30 p-2 rounded-md">
+                      <p className="text-xs text-gray-400">Calories</p>
+                      <p className="text-lg font-bold">{meal.calories}</p>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded-md">
+                      <p className="text-xs text-gray-400">Protein</p>
+                      <p className="text-lg font-bold">{meal.protein}g</p>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded-md">
+                      <p className="text-xs text-gray-400">Carbs</p>
+                      <p className="text-lg font-bold">{meal.carbs}g</p>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded-md">
+                      <p className="text-xs text-gray-400">Fats</p>
+                      <p className="text-lg font-bold">{meal.fats}g</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <button 
+                      className="text-sm text-gray-300 hover:text-white"
+                      onClick={() => handleEditMeal(meal)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="text-sm text-gray-300 hover:text-white"
+                      onClick={() => handleMealDetails(meal)}
+                    >
+                      Details
+                    </button>
+                  </div>
+                </div>
+              ))}
               <div 
-                key={index} 
-                className="glow-card p-6 group hover:border-glow-green transition-all duration-300"
+                className="glow-card flex items-center justify-center p-6 cursor-pointer hover:border-glow-green"
+                onClick={handleAddCustomMeal}
               >
-                <h3 className="text-xl font-semibold mb-2">{meal.name}</h3>
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  <div className="bg-black/30 p-2 rounded-md">
-                    <p className="text-xs text-gray-400">Calories</p>
-                    <p className="text-lg font-bold">{meal.calories}</p>
-                  </div>
-                  <div className="bg-black/30 p-2 rounded-md">
-                    <p className="text-xs text-gray-400">Protein</p>
-                    <p className="text-lg font-bold">{meal.protein}g</p>
-                  </div>
-                  <div className="bg-black/30 p-2 rounded-md">
-                    <p className="text-xs text-gray-400">Carbs</p>
-                    <p className="text-lg font-bold">{meal.carbs}g</p>
-                  </div>
-                  <div className="bg-black/30 p-2 rounded-md">
-                    <p className="text-xs text-gray-400">Fats</p>
-                    <p className="text-lg font-bold">{meal.fats}g</p>
-                  </div>
+                <div className="text-center">
+                  <PlusCircle size={40} className="mx-auto mb-2 text-glow-green opacity-70" />
+                  <p className="text-gray-400">Add Custom Meal</p>
                 </div>
-                <div className="flex justify-between">
-                  <button className="text-sm text-gray-300 hover:text-white">Edit</button>
-                  <button className="text-sm text-gray-300 hover:text-white">Details</button>
-                </div>
-              </div>
-            ))}
-            <div className="glow-card flex items-center justify-center p-6 cursor-pointer hover:border-glow-green">
-              <div className="text-center">
-                <PlusCircle size={40} className="mx-auto mb-2 text-glow-green opacity-70" />
-                <p className="text-gray-400">Add Custom Meal</p>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Calorie Calculator Section */}
@@ -141,11 +249,22 @@ const Nutrition = () => {
               <div>
                 <div className="mb-4">
                   <label className="block text-sm mb-1 text-gray-400">Age</label>
-                  <input type="number" className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2" />
+                  <input 
+                    type="number" 
+                    name="age"
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2" 
+                  />
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm mb-1 text-gray-400">Gender</label>
-                  <select className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2">
+                  <select 
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2"
+                  >
                     <option>Male</option>
                     <option>Female</option>
                     <option>Other</option>
@@ -153,17 +272,34 @@ const Nutrition = () => {
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm mb-1 text-gray-400">Height (cm)</label>
-                  <input type="number" className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2" />
+                  <input 
+                    type="number" 
+                    name="height"
+                    value={formData.height}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2" 
+                  />
                 </div>
               </div>
               <div>
                 <div className="mb-4">
                   <label className="block text-sm mb-1 text-gray-400">Weight (kg)</label>
-                  <input type="number" className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2" />
+                  <input 
+                    type="number" 
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2" 
+                  />
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm mb-1 text-gray-400">Activity Level</label>
-                  <select className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2">
+                  <select 
+                    name="activityLevel"
+                    value={formData.activityLevel}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2"
+                  >
                     <option>Sedentary</option>
                     <option>Lightly Active</option>
                     <option>Moderately Active</option>
@@ -173,7 +309,12 @@ const Nutrition = () => {
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm mb-1 text-gray-400">Goal</label>
-                  <select className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2">
+                  <select 
+                    name="goal"
+                    value={formData.goal}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2"
+                  >
                     <option>Lose Weight</option>
                     <option>Maintain Weight</option>
                     <option>Gain Weight</option>
@@ -182,25 +323,25 @@ const Nutrition = () => {
               </div>
             </div>
             <div className="flex justify-center mt-4">
-              <button className="btn-glow px-8 py-3">Calculate</button>
+              <button className="btn-glow px-8 py-3" onClick={handleCalculate}>Calculate</button>
             </div>
             <div className="mt-6 p-4 bg-glow-green/5 border border-glow-green/30 rounded-lg">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-sm text-gray-400">Daily Calories Needed:</p>
-                  <p className="text-3xl font-bold text-white">2,340</p>
+                  <p className="text-3xl font-bold text-white">{calorieResult.calories.toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Protein Target:</p>
-                  <p className="text-xl font-bold text-white">140g</p>
+                  <p className="text-xl font-bold text-white">{calorieResult.protein}g</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Carbs Target:</p>
-                  <p className="text-xl font-bold text-white">250g</p>
+                  <p className="text-xl font-bold text-white">{calorieResult.carbs}g</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Fats Target:</p>
-                  <p className="text-xl font-bold text-white">65g</p>
+                  <p className="text-xl font-bold text-white">{calorieResult.fats}g</p>
                 </div>
               </div>
             </div>
@@ -215,10 +356,16 @@ const Nutrition = () => {
               Food Tracker
             </h2>
             <div>
-              <button className="btn-red mr-3">
+              <button 
+                className="btn-red mr-3"
+                onClick={() => toast.info("Track intake feature coming soon!")}
+              >
                 <PlusCircle size={16} className="mr-1 inline-block" /> Track Intake
               </button>
-              <button className="btn-glow">
+              <button 
+                className="btn-glow"
+                onClick={() => toast.info("Add meal feature coming soon!")}
+              >
                 <PlusCircle size={16} className="mr-1 inline-block" /> Add Meal
               </button>
             </div>
@@ -226,7 +373,12 @@ const Nutrition = () => {
           
           <div className="glass-card p-6 text-center">
             <p className="text-gray-400 mb-4">Track your daily food intake and monitor your nutrition goals</p>
-            <button className="btn-glow">Start Tracking Today</button>
+            <button 
+              className="btn-glow"
+              onClick={() => toast.info("Food tracking feature coming soon!")}
+            >
+              Start Tracking Today
+            </button>
           </div>
         </div>
       </main>

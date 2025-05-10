@@ -1,7 +1,25 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from "sonner";
+import { authService } from '@/services/authService';
 
 export const CTASection = () => {
+  const navigate = useNavigate();
+  const isAuthenticated = authService.isAuthenticated();
+  
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      navigate('/signup');
+    }
+  };
+  
+  const handleExploreFeatures = () => {
+    toast.info("Exploring all features");
+    navigate('/fitness');
+  };
+
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background elements */}
@@ -24,12 +42,18 @@ export const CTASection = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/signup" className="btn-glow text-center py-3 px-8 text-lg">
-              Start Free Trial
-            </Link>
-            <Link to="/fitness" className="btn-red text-center py-3 px-8 text-lg">
+            <button 
+              onClick={handleGetStarted} 
+              className="btn-glow text-center py-3 px-8 text-lg"
+            >
+              {isAuthenticated ? 'Go to Dashboard' : 'Start Free Trial'}
+            </button>
+            <button 
+              onClick={handleExploreFeatures}
+              className="btn-red text-center py-3 px-8 text-lg"
+            >
               Explore Features
-            </Link>
+            </button>
           </div>
           
           <div className="mt-8 text-center text-sm text-gray-400">
