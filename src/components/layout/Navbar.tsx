@@ -1,21 +1,28 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Lock } from "lucide-react";
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, Lock, Heart, MessageSquare } from "lucide-react";
 import { ThemeToggle } from '../ui/ThemeToggle';
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'Fitness', path: '/fitness' },
     { name: 'Nutrition', path: '/nutrition' },
+    { name: 'Wellness', path: '/wellness', icon: <Heart size={16} /> },
+    { name: 'Chat', path: '/chat', icon: <MessageSquare size={16} /> },
     { name: 'Events', path: '/events' },
     { name: 'Leaderboard', path: '/leaderboard' },
     { name: 'Blog', path: '/blog' },
     { name: 'Dashboard', path: '/dashboard' },
   ];
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
   return (
     <nav className="backdrop-blur-md dark:bg-black/50 bg-white/50 dark:border-glow-green/20 border-gray-200 sticky top-0 z-50">
@@ -34,10 +41,17 @@ export const Navbar = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                className="dark:text-white text-gray-800 hover:text-glow-green transition-colors relative group"
+                className={`dark:text-white text-gray-800 hover:text-glow-green transition-colors relative group flex items-center gap-1 ${
+                  isActive(item.path) ? 'text-glow-green' : ''
+                }`}
               >
+                {item.icon && item.icon}
                 {item.name}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-glow-green transition-all duration-300 group-hover:w-full"></span>
+                <span 
+                  className={`absolute bottom-0 left-0 h-0.5 bg-glow-green transition-all duration-300 ${
+                    isActive(item.path) ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`}
+                ></span>
               </Link>
             ))}
           </div>
@@ -72,9 +86,12 @@ export const Navbar = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                className="dark:text-white text-gray-800 hover:text-glow-green transition-colors py-2"
+                className={`dark:text-white text-gray-800 hover:text-glow-green transition-colors py-2 flex items-center gap-2 ${
+                  isActive(item.path) ? 'text-glow-green' : ''
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
+                {item.icon && item.icon}
                 {item.name}
               </Link>
             ))}

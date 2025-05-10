@@ -5,6 +5,10 @@ import { Hero } from "../components/home/Hero";
 import { FitnessCards } from "../components/home/FitnessCards";
 import { QuickAccess } from "../components/home/QuickAccess";
 import { AiAssistant } from "../components/ui/AiAssistant";
+import { Features } from "../components/home/Features";
+import { Testimonials } from "../components/home/Testimonials";
+import { HomeStats } from "../components/home/HomeStats";
+import { CTASection } from "../components/home/CTASection";
 
 const Index = () => {
   return (
@@ -12,8 +16,12 @@ const Index = () => {
       <Navbar />
       <main>
         <Hero />
+        <HomeStats />
+        <Features />
         <FitnessCards />
         <QuickAccess />
+        <Testimonials />
+        <CTASection />
       </main>
       <Footer />
       <AiAssistant />
