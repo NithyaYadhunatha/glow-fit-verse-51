@@ -68,19 +68,19 @@ const App = () => {
             <Route path="/start-workout" element={<StartWorkout />} />
             <Route path="/start-workout/:planId" element={<StartWorkout />} />
             <Route path="/dashboard" element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <Dashboard />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             } />
             <Route path="/profile" element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <Profile />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             } />
             <Route path="/leaderboard" element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <Leaderboard />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             } />
             <Route path="/login" element={<Auth />} />
             <Route path="/signup" element={<Auth />} />
