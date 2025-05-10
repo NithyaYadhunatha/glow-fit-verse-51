@@ -13,7 +13,13 @@ export const SleepTracker = () => {
     { day: 'Sun', hours: 8.5, deep: 2.7, rem: 2.2, light: 3.6 },
   ];
 
-  const CustomTooltip = ({ active, payload, label }) => {
+  interface CustomTooltipProps {
+    active?: boolean;
+    payload?: any[];
+    label?: string;
+  }
+
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       

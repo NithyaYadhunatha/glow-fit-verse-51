@@ -52,7 +52,7 @@ const App = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/login" element={<Auth />} />
-            <Route path="/signup" element={<Auth activeTab="signup" />} />
+            <Route path="/signup" element={<Auth />} />
             <Route path="/wellness" element={<Wellness />} />
             <Route path="/chat" element={<Chat />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

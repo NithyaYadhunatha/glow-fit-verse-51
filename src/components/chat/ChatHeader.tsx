@@ -1,5 +1,5 @@
 
-import { Robot } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 interface ChatHeaderProps {
   activeBot: 'fitness' | 'nutrition' | 'wellness';
@@ -23,7 +23,7 @@ export const ChatHeader = ({ activeBot }: ChatHeaderProps) => {
     <div className="mb-4">
       <div className="flex items-center gap-3">
         <div className={`w-12 h-12 rounded-full bg-glow-green/20 flex items-center justify-center border border-glow-green/50`}>
-          <Robot className="text-glow-green" size={24} />
+          <Bot className="text-glow-green" size={24} />
         </div>
         <div>
           <h1 className="text-xl font-bold">{getBotTitle()}</h1>

@@ -28,8 +28,14 @@ export const StressInsights = () => {
     { time: '8 PM', rate: 14 },
   ];
   
+  interface CustomTooltipProps {
+    active?: boolean;
+    payload?: any[];
+    label?: string;
+  }
+  
   // Custom tooltip for charts
-  const CustomTooltip = ({ active, payload, label }) => {
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="glass-card p-3 border border-glow-green/30">
@@ -54,7 +60,7 @@ export const StressInsights = () => {
     return null;
   };
   
-  const BreathingTooltip = ({ active, payload, label }) => {
+  const BreathingTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="glass-card p-3 border border-glow-green/30">

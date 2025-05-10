@@ -2,7 +2,7 @@
 import { Message } from "../../pages/Chat";
 import { useRef, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Robot } from "lucide-react";
+import { Bot } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatMessagesProps {
@@ -35,7 +35,7 @@ export const ChatMessages = ({ messages, loading }: ChatMessagesProps) => {
               {message.sender === "bot" && (
                 <div className="flex items-center mb-2">
                   <div className="w-6 h-6 rounded-full bg-black/50 flex items-center justify-center mr-2">
-                    <Robot className="text-glow-green" size={12} />
+                    <Bot className="text-glow-green" size={12} />
                   </div>
                   <span className="text-xs text-gray-400">AI Assistant</span>
                 </div>
@@ -55,7 +55,7 @@ export const ChatMessages = ({ messages, loading }: ChatMessagesProps) => {
             <div className="max-w-[80%] rounded-2xl p-3 bg-black/30 border border-gray-700">
               <div className="flex items-center mb-2">
                 <div className="w-6 h-6 rounded-full bg-black/50 flex items-center justify-center mr-2">
-                  <Robot className="text-glow-green" size={12} />
+                  <Bot className="text-glow-green" size={12} />
                 </div>
                 <span className="text-xs text-gray-400">AI Assistant</span>
               </div>

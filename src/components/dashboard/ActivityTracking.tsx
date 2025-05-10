@@ -14,7 +14,13 @@ export const ActivityTracking = () => {
     { day: 'Sat', steps: 9800, calories: 680 },
   ];
   
-  const CustomTooltip = ({ active, payload, label }) => {
+  interface CustomTooltipProps {
+    active?: boolean;
+    payload?: any[];
+    label?: string;
+  }
+  
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-background/80 backdrop-blur-md p-3 border border-glow-green/30 rounded-lg shadow-lg">

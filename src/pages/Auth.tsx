@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Navbar } from "../components/layout/Navbar";
 import { Footer } from "../components/layout/Footer";
 import { AuthForm } from "../components/auth/AuthForm";
@@ -7,6 +8,16 @@ import { AiAssistant } from "../components/ui/AiAssistant";
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
+  const location = useLocation();
+
+  // Set active tab based on URL path
+  useEffect(() => {
+    if (location.pathname === '/signup') {
+      setActiveTab('signup');
+    } else {
+      setActiveTab('login');
+    }
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
