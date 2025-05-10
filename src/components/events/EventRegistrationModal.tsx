@@ -1,38 +1,53 @@
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
-interface EventRegistrationModalProps {
-  open: boolean;
-  onClose: () => void;
-  onRegister: (data: {
-    eventName: string;
-    fullName: string;
-    email: string;
-    phone: string;
-  }) => void;
-  eventName?: string;
+export interface EventItem {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  image: string;
+  category: string;
+  attendees: number;
+  isFull: boolean;
 }
 
-export const EventRegistrationModal = ({ 
-  open, 
-  onClose, 
+export interface EventRegistrationModalProps {
+  open: boolean;
+  onClose: () => void;
+  event: EventItem;
+  onRegister: () => void;
+}
+
+export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
+  open,
+  onClose,
+  event,
   onRegister,
-  eventName = '' 
-}: EventRegistrationModalProps) => {
+}) => {
   const [formData, setFormData] = useState({
-    eventName: eventName,
-    fullName: '',
-    email: '',
-    phone: '',
+    name: "",
+    email: "",
+    phone: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -40,54 +55,46 @@ export const EventRegistrationModal = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onRegister(formData);
-    // Reset form after submit
-    setFormData({
-      eventName: eventName,
-      fullName: '',
-      email: '',
-      phone: '',
+    
+    if (!formData.name || !formData.email) {
+      toast.error("Please fill out all required fields");
+      return;
+    }
+    
+    // Process form submission
+    toast.success("Registration successful!", {
+      description: `You've registered for ${event.title}`,
     });
+    
+    onRegister();
+    onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="glass-card sm:max-w-md">
+      <DialogContent className="sm:max-w-[425px] glass-card border-glow-green/20">
         <DialogHeader>
-          <DialogTitle className="font-orbitron">
-            Event Registration
-          </DialogTitle>
+          <DialogTitle className="text-xl font-orbitron">{event.title}</DialogTitle>
+          <DialogDescription>
+            Complete the form below to reserve your spot for this event.
+          </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="eventName">Event</Label>
+            <Label htmlFor="name">Full Name *</Label>
             <Input
-              id="eventName"
-              name="eventName"
-              value={formData.eventName}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               className="bg-black/30 border-white/20"
-              placeholder="Event name"
               required
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              className="bg-black/30 border-white/20"
-              placeholder="Your full name"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email *</Label>
             <Input
               id="email"
               name="email"
@@ -95,7 +102,6 @@ export const EventRegistrationModal = ({
               value={formData.email}
               onChange={handleChange}
               className="bg-black/30 border-white/20"
-              placeholder="Your email address"
               required
             />
           </div>
@@ -108,13 +114,11 @@ export const EventRegistrationModal = ({
               value={formData.phone}
               onChange={handleChange}
               className="bg-black/30 border-white/20"
-              placeholder="Your phone number"
-              required
             />
           </div>
           
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} className="border-white/20">
+          <DialogFooter className="mt-6">
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button 
