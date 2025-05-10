@@ -51,7 +51,7 @@ export const QuickAccess = () => {
       requiresAuth: true,
     },
     {
-      id: 'health',
+      id: 'wellness',
       title: 'Health Stats',
       description: 'Track vital metrics',
       icon: HeartPulse,
@@ -69,10 +69,15 @@ export const QuickAccess = () => {
   ];
 
   const handleTileClick = (tile: QuickAccessTile) => {
-    if (tile.path === '/health') {
-      // Redirect to the wellness page instead
-      navigate('/wellness');
-      return;
+    // Handle authentication for pages that require it
+    if (tile.requiresAuth) {
+      const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+      
+      if (!isAuthenticated) {
+        toast.error('You need to log in first');
+        navigate('/login');
+        return;
+      }
     }
     
     navigate(tile.path);

@@ -18,12 +18,14 @@ import Wellness from "./pages/Wellness";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 import { authService } from "./services/authService";
+import { toast } from "sonner";
 
 const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   if (!authService.isAuthenticated()) {
+    toast.error("You need to log in to access this page");
     return <Navigate to="/login" replace />;
   }
 
