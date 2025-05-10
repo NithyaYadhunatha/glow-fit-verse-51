@@ -1,9 +1,26 @@
 
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { SleepData } from '@/services/wellnessService';
+import { useState } from 'react';
 
-export const SleepTracker = () => {
-  // Mock data for the sleep chart
-  const sleepData = [
+interface SleepTrackerProps {
+  data: SleepData[];
+  loading: boolean;
+  onLogSleep: (duration: number, quality: number) => void;
+}
+
+export const SleepTracker = ({ data, loading, onLogSleep }: SleepTrackerProps) => {
+  const [newSleepHours, setNewSleepHours] = useState<number>(7.5);
+  const [newSleepQuality, setNewSleepQuality] = useState<number>(8);
+
+  // Mock data for the sleep chart - use passed data or fallback
+  const sleepData = data.length > 0 ? data.slice(0, 7).map(item => ({
+    day: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
+    hours: item.duration,
+    deep: item.deepSleep,
+    rem: item.remSleep,
+    light: item.lightSleep
+  })) : [
     { day: 'Mon', hours: 7.5, deep: 2.2, rem: 1.8, light: 3.5 },
     { day: 'Tue', hours: 6.2, deep: 1.5, rem: 1.4, light: 3.3 },
     { day: 'Wed', hours: 8.1, deep: 2.8, rem: 2.0, light: 3.3 },
@@ -56,6 +73,21 @@ export const SleepTracker = () => {
     return null;
   };
 
+  const handleLogSleep = () => {
+    onLogSleep(newSleepHours, newSleepQuality);
+  };
+
+  // Calculate averages from data
+  const averageSleep = data.length ? 
+    data.reduce((sum, item) => sum + item.duration, 0) / data.length : 
+    7.6;
+    
+  const averageDeepSleep = data.length ? 
+    data.reduce((sum, item) => sum + item.deepSleep, 0) / data.length : 
+    2.3;
+    
+  const averageDeepSleepPercentage = Math.round((averageDeepSleep / averageSleep) * 100);
+
   return (
     <div className="glass-card rounded-xl border border-glow-green/20 p-6">
       <div className="mb-6">
@@ -66,14 +98,14 @@ export const SleepTracker = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="glass-card p-4 rounded-lg text-center">
           <h3 className="text-sm text-gray-400 mb-1">Average Sleep</h3>
-          <div className="text-2xl font-bold text-glow-green">7.6h</div>
+          <div className="text-2xl font-bold text-glow-green">{averageSleep.toFixed(1)}h</div>
           <p className="text-xs text-gray-500">Past week</p>
         </div>
         
         <div className="glass-card p-4 rounded-lg text-center">
           <h3 className="text-sm text-gray-400 mb-1">Deep Sleep</h3>
-          <div className="text-2xl font-bold">2.3h</div>
-          <p className="text-xs text-gray-500">30% of total</p>
+          <div className="text-2xl font-bold">{averageDeepSleep.toFixed(1)}h</div>
+          <p className="text-xs text-gray-500">{averageDeepSleepPercentage}% of total</p>
         </div>
         
         <div className="glass-card p-4 rounded-lg text-center">
@@ -167,6 +199,41 @@ export const SleepTracker = () => {
             Target: 8 hours
           </span>
         </div>
+      </div>
+      
+      <div className="glass-card p-4 rounded-lg mt-6">
+        <h3 className="text-lg font-semibold mb-3">Log Today's Sleep</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Sleep Duration (hours)</label>
+            <input 
+              type="number" 
+              min="0" 
+              max="24" 
+              step="0.5"
+              value={newSleepHours}
+              onChange={(e) => setNewSleepHours(parseFloat(e.target.value))} 
+              className="w-full bg-black/30 border border-gray-700 rounded p-2"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Sleep Quality (1-10)</label>
+            <input 
+              type="number" 
+              min="1" 
+              max="10"
+              value={newSleepQuality}
+              onChange={(e) => setNewSleepQuality(parseInt(e.target.value))} 
+              className="w-full bg-black/30 border border-gray-700 rounded p-2"
+            />
+          </div>
+        </div>
+        <button 
+          onClick={handleLogSleep}
+          className="w-full mt-4 py-2 rounded-lg bg-glow-green/20 border border-glow-green/50 text-glow-green hover:bg-glow-green/30 transition-colors"
+        >
+          Log Sleep
+        </button>
       </div>
       
       <div className="glass-card p-4 rounded-lg mt-6">

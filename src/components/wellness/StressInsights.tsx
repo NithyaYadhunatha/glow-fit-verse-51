@@ -1,9 +1,20 @@
 
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { StressData } from '@/services/wellnessService';
 
-export const StressInsights = () => {
-  // Mock data for stress levels
-  const stressData = [
+interface StressInsightsProps {
+  data: StressData[];
+  loading: boolean;
+}
+
+export const StressInsights = ({ data, loading }: StressInsightsProps) => {
+  // Use passed data or fallback to mock data
+  const stressData = data.length > 0 ? data.slice(0, 7).map(item => ({
+    day: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
+    stress: item.level * 10, // Scale 1-10 to percentage
+    recovery: 100 - (item.level * 10),
+    hrv: item.hrvScore
+  })) : [
     { day: 'Mon', stress: 65, recovery: 35, hrv: 45 },
     { day: 'Tue', stress: 75, recovery: 25, hrv: 38 },
     { day: 'Wed', stress: 40, recovery: 60, hrv: 52 },
@@ -75,6 +86,11 @@ export const StressInsights = () => {
     return null;
   };
 
+  // Calculate today's metrics from data if available
+  const todaysStressPercentage = data.length > 0 ? data[0].level * 10 : 35;
+  const todaysRecoveryPercentage = 100 - todaysStressPercentage;
+  const todaysHRV = data.length > 0 ? data[0].hrvScore : 55;
+
   return (
     <div className="space-y-6">
       <div className="glass-card rounded-xl border border-glow-green/20 p-6">
@@ -86,20 +102,24 @@ export const StressInsights = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="glass-card p-4 rounded-lg text-center">
             <h3 className="text-sm text-gray-400 mb-1">Today's Stress</h3>
-            <div className="text-2xl font-bold text-glow-red">35%</div>
-            <p className="text-xs text-gray-500">Low</p>
+            <div className="text-2xl font-bold text-glow-red">{todaysStressPercentage}%</div>
+            <p className="text-xs text-gray-500">{todaysStressPercentage < 40 ? 'Low' : todaysStressPercentage < 70 ? 'Medium' : 'High'}</p>
           </div>
           
           <div className="glass-card p-4 rounded-lg text-center">
             <h3 className="text-sm text-gray-400 mb-1">Recovery Score</h3>
-            <div className="text-2xl font-bold text-glow-green">65%</div>
-            <p className="text-xs text-gray-500">Good</p>
+            <div className="text-2xl font-bold text-glow-green">{todaysRecoveryPercentage}%</div>
+            <p className="text-xs text-gray-500">
+              {todaysRecoveryPercentage > 70 ? 'Excellent' : todaysRecoveryPercentage > 50 ? 'Good' : todaysRecoveryPercentage > 30 ? 'Fair' : 'Poor'}
+            </p>
           </div>
           
           <div className="glass-card p-4 rounded-lg text-center">
             <h3 className="text-sm text-gray-400 mb-1">Heart Rate Variability</h3>
-            <div className="text-2xl font-bold">55 ms</div>
-            <p className="text-xs text-gray-500">+8 ms from avg.</p>
+            <div className="text-2xl font-bold">{todaysHRV} ms</div>
+            <p className="text-xs text-gray-500">
+              {data.length > 1 ? `${todaysHRV > data[1].hrvScore ? '+' : ''}${todaysHRV - data[1].hrvScore} ms from prev.` : '+8 ms from avg.'}
+            </p>
           </div>
         </div>
         

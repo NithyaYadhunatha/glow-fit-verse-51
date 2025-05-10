@@ -1,16 +1,17 @@
 
-import { Message } from "../../pages/Chat";
 import { useRef, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Bot } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Message } from "@/services/chatService";
 
 interface ChatMessagesProps {
   messages: Message[];
   loading: boolean;
+  onClearChat: () => Promise<void>;
 }
 
-export const ChatMessages = ({ messages, loading }: ChatMessagesProps) => {
+export const ChatMessages = ({ messages, loading, onClearChat }: ChatMessagesProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -20,6 +21,17 @@ export const ChatMessages = ({ messages, loading }: ChatMessagesProps) => {
   return (
     <ScrollArea className="flex-1 p-4">
       <div className="space-y-4">
+        {messages.length > 0 && (
+          <div className="flex justify-end mb-4">
+            <button 
+              onClick={onClearChat}
+              className="text-xs px-2 py-1 bg-black/30 border border-gray-700 rounded hover:bg-black/50 transition-colors"
+            >
+              Clear Chat
+            </button>
+          </div>
+        )}
+        
         {messages.map((message) => (
           <div
             key={message.id}

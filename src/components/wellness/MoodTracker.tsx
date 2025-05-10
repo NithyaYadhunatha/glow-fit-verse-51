@@ -1,23 +1,35 @@
 
 import { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
+import { MoodData } from '@/services/wellnessService';
 
-export const MoodTracker = () => {
+interface MoodTrackerProps {
+  data: MoodData[];
+  loading: boolean;
+  onLogMood: (mood: 'great' | 'good' | 'okay' | 'bad' | 'terrible', energy: number, notes?: string) => void;
+}
+
+export const MoodTracker = ({ data, loading, onLogMood }: MoodTrackerProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedMood, setSelectedMood] = useState<number | null>(4);
   const [note, setNote] = useState<string>('');
   
   const moods = [
-    { value: 1, emoji: '😔', label: 'Sad' },
-    { value: 2, emoji: '😐', label: 'Meh' },
-    { value: 3, emoji: '🙂', label: 'Okay' },
-    { value: 4, emoji: '😊', label: 'Good' },
-    { value: 5, emoji: '😁', label: 'Great' },
+    { value: 1, emoji: '😔', label: 'Terrible', moodType: 'terrible' as const },
+    { value: 2, emoji: '😐', label: 'Bad', moodType: 'bad' as const },
+    { value: 3, emoji: '🙂', label: 'Okay', moodType: 'okay' as const },
+    { value: 4, emoji: '😊', label: 'Good', moodType: 'good' as const },
+    { value: 5, emoji: '😁', label: 'Great', moodType: 'great' as const },
   ];
   
   const handleAddNote = () => {
-    // In a real app, this would save the mood and note
-    setNote('');
+    if (selectedMood) {
+      const selectedMoodObj = moods.find(m => m.value === selectedMood);
+      if (selectedMoodObj) {
+        onLogMood(selectedMoodObj.moodType, selectedMood * 2, note); // Scale mood 1-5 to energy 2-10
+        setNote('');
+      }
+    }
   };
 
   return (
@@ -69,14 +81,21 @@ export const MoodTracker = () => {
             placeholder="How are you feeling today? What factors might be affecting your mood?"
           ></textarea>
           
-          <button onClick={handleAddNote} className="btn-glow w-full">
+          <button 
+            onClick={handleAddNote} 
+            className="btn-glow w-full py-2 rounded-lg bg-glow-green/20 border border-glow-green/50 text-glow-green hover:bg-glow-green/30 transition-colors"
+            disabled={!selectedMood}
+          >
             Save Today's Entry
           </button>
           
           <div className="mt-6 p-4 bg-black/20 rounded-lg">
             <h4 className="text-sm font-medium mb-2">AI Mood Insights</h4>
             <p className="text-xs text-gray-400">
-              Your mood has been consistently positive for the past week! Continue your morning meditation and regular exercise routine as they seem to be working well for you. Consider taking short chai breaks when work stress increases.
+              {data.length > 0 ? 
+                "Your mood has been consistently positive for the past week! Continue your morning meditation and regular exercise routine as they seem to be working well for you." :
+                "Start logging your mood daily to receive personalized insights and recommendations."
+              }
             </p>
           </div>
         </div>
