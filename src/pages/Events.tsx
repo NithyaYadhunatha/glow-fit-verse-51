@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { Navbar } from "../components/layout/Navbar";
 import { Footer } from "../components/layout/Footer";
 import { PageBackground } from "../components/ui/PageBackground";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EventRegistrationModal } from "../components/events/EventRegistrationModal";
+import { EventRegistrationModal, EventItem } from "../components/events/EventRegistrationModal";
 import { 
   Calendar, 
   MapPin, 
@@ -20,18 +19,6 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-interface EventItem {
-  id: number;
-  title: string;
-  date: string;
-  location: string;
-  participants: number;
-  image: string;
-  isVirtual: boolean;
-  recording: boolean;
-  instructor: string; // Added the missing instructor property
-}
-
 const Events = () => {
   const navigate = useNavigate();
   const [showRegModal, setShowRegModal] = useState(false);
@@ -41,48 +28,52 @@ const Events = () => {
   
   const events: EventItem[] = [
     {
-      id: 1,
+      id: "1",
       title: "Morning Yoga Masterclass",
-      date: "May 15, 2025 • 8:00 AM",
+      date: "May 15, 2025",
+      time: "8:00 AM",
       location: "Central Park, New York",
-      participants: 24,
+      description: "Start your day with an energizing yoga session led by expert instructors.",
       image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Yoga+Event",
-      isVirtual: false,
-      recording: false,
-      instructor: "Emma Wilson"
+      category: "Yoga",
+      attendees: 24,
+      isFull: false
     },
     {
-      id: 2,
+      id: "2",
       title: "HIIT & Run Challenge",
-      date: "May 18, 2025 • 6:30 PM",
+      date: "May 18, 2025",
+      time: "6:30 PM",
       location: "Riverside Track",
-      participants: 32,
+      description: "Challenge yourself with high-intensity interval training followed by a group run.",
       image: "https://placehold.co/600x400/0a0a0a/39FF14?text=HIIT+Event",
-      isVirtual: false,
-      recording: false,
-      instructor: "John Davis"
+      category: "HIIT",
+      attendees: 32,
+      isFull: false
     },
     {
-      id: 3,
+      id: "3",
       title: "Virtual Nutrition Workshop",
-      date: "May 20, 2025 • 12:00 PM",
+      date: "May 20, 2025",
+      time: "12:00 PM",
       location: "Online Zoom Session",
-      participants: 56,
+      description: "Learn about proper nutrition for fitness and athletic performance from expert nutritionists.",
       image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Nutrition+Workshop",
-      isVirtual: true,
-      recording: true,
-      instructor: "Sarah Johnson"
+      category: "Nutrition",
+      attendees: 56,
+      isFull: false
     },
     {
-      id: 4,
+      id: "4",
       title: "Strength Training Basics",
-      date: "May 25, 2025 • 4:00 PM",
+      date: "May 25, 2025",
+      time: "4:00 PM",
       location: "Fitness Center Downtown",
-      participants: 18,
+      description: "Master the fundamentals of strength training with certified trainers.",
       image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Strength+Training",
-      isVirtual: false,
-      recording: true,
-      instructor: "Mike Chen"
+      category: "Strength",
+      attendees: 18,
+      isFull: false
     }
   ];
   
