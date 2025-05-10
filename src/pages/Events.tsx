@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navbar } from "../components/layout/Navbar";
 import { Footer } from "../components/layout/Footer";
@@ -24,7 +25,7 @@ const Events = () => {
   const [showRegModal, setShowRegModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [activeCategory, setActiveCategory] = useState("all");
-  const [subscribed, setSubscribed] = useState<number[]>([]);
+  const [subscribed, setSubscribed] = useState<string[]>([]);
   
   const events: EventItem[] = [
     {
@@ -82,7 +83,7 @@ const Events = () => {
     setShowRegModal(true);
   };
   
-  const handleSubscribe = (eventId: number) => {
+  const handleSubscribe = (eventId: string) => {
     if (subscribed.includes(eventId)) {
       setSubscribed(subscribed.filter(id => id !== eventId));
       toast.info("Unsubscribed from event notifications");
@@ -101,6 +102,12 @@ const Events = () => {
       },
     });
     setShowRegModal(false);
+  };
+
+  // Function to determine if an event is virtual based on location
+  const isVirtual = (event: EventItem) => {
+    return event.location.toLowerCase().includes('online') || 
+           event.location.toLowerCase().includes('zoom');
   };
 
   return (
@@ -151,7 +158,7 @@ const Events = () => {
                 <div key={event.id} className="glass-card overflow-hidden group hover:shadow-[0_0_15px_#39FF14] hover:border-glow-green/30 transition-all duration-300">
                   <div className="relative h-48">
                     <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-                    {event.isVirtual && (
+                    {isVirtual(event) && (
                       <span className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
                         Virtual
                       </span>
@@ -172,10 +179,10 @@ const Events = () => {
                     <h3 className="font-bold text-lg mb-1">{event.title}</h3>
                     <p className="text-sm text-gray-400 flex items-center gap-2 mb-2">
                       <Calendar size={14} />
-                      {event.date}
+                      {event.date} • {event.time}
                     </p>
                     <p className="text-sm text-gray-400 flex items-center gap-2 mb-3">
-                      {event.isVirtual ? (
+                      {isVirtual(event) ? (
                         <>
                           <Video size={14} />
                           {event.location}
@@ -189,11 +196,11 @@ const Events = () => {
                     </p>
                     <p className="text-sm text-gray-400 flex items-center gap-2 mb-3">
                       <Users size={14} />
-                      {event.participants} registered participants
+                      {event.attendees} registered participants
                     </p>
                     
                     <div className="flex justify-between items-center mt-4">
-                      <span className="text-sm text-gray-400">By {event.instructor}</span>
+                      <span className="text-sm text-gray-400">{event.category}</span>
                       <Button 
                         onClick={() => handleRegister(event)}
                         className="bg-glow-green hover:bg-glow-green/90 text-black"
@@ -216,7 +223,7 @@ const Events = () => {
           
           <TabsContent value="virtual" className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.filter(e => e.isVirtual).map(event => (
+              {events.filter(e => isVirtual(e)).map(event => (
                 <div key={event.id} className="glass-card overflow-hidden">
                   <div className="relative h-48">
                     <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
@@ -228,7 +235,7 @@ const Events = () => {
                     <h3 className="font-bold text-lg mb-1">{event.title}</h3>
                     <p className="text-sm text-gray-400 mb-3">
                       <Calendar size={14} className="inline mr-2" />
-                      {event.date}
+                      {event.date} • {event.time}
                     </p>
                     <Button 
                       onClick={() => handleRegister(event)}
@@ -244,29 +251,9 @@ const Events = () => {
           </TabsContent>
           
           <TabsContent value="recordings" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.filter(e => e.recording).map(event => (
-                <div key={event.id} className="glass-card overflow-hidden">
-                  <div className="relative h-48">
-                    <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                      Recording
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-1">{event.title}</h3>
-                    <p className="text-sm text-gray-400 mb-3">
-                      Originally held on {event.date.split("•")[0]}
-                    </p>
-                    <Button 
-                      className="w-full bg-glow-green hover:bg-glow-green/90 text-black"
-                      size="sm"
-                    >
-                      Watch Recording
-                    </Button>
-                  </div>
-                </div>
-              ))}
+            <div className="text-center text-gray-400 py-8">
+              <p>No recordings available at this time.</p>
+              <p className="mt-2">Check back later for recorded sessions of past events.</p>
             </div>
           </TabsContent>
         </Tabs>
