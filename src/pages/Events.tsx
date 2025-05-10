@@ -1,356 +1,295 @@
 
+import { useState } from 'react';
 import { Navbar } from "../components/layout/Navbar";
 import { Footer } from "../components/layout/Footer";
-import { AiAssistant } from "../components/ui/AiAssistant";
 import { PageBackground } from "../components/ui/PageBackground";
-import { Calendar, Clock, MapPin, Play, Users, Award, Bell } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventRegistrationModal } from "../components/events/EventRegistrationModal";
+import { 
+  Calendar, 
+  MapPin, 
+  Users, 
+  ArrowRight, 
+  Bell, 
+  Video, 
+  CheckCircle2,
+  Filter,
+  Search
+} from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface EventItem {
   id: number;
   title: string;
   date: string;
-  time?: string;
-  instructor: string;
+  location: string;
   participants: number;
   image: string;
   isVirtual: boolean;
-  location?: string;
-  recording?: boolean;
+  recording: boolean;
+  instructor: string; // Added the missing instructor property
 }
 
 const Events = () => {
-  const [activeTab, setActiveTab] = useState('upcoming');
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [registrationOpen, setRegistrationOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<string>('');
-  const [subscriptions, setSubscriptions] = useState<number[]>([]);
+  const navigate = useNavigate();
+  const [showRegModal, setShowRegModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [subscribed, setSubscribed] = useState<number[]>([]);
   
-  // Calculate countdown for next event
-  useEffect(() => {
-    // Example event date - one week from now
-    const nextEventDate = new Date();
-    nextEventDate.setDate(nextEventDate.getDate() + 7);
-    
-    const timer = setInterval(() => {
-      const now = new Date();
-      const difference = nextEventDate.getTime() - now.getTime();
-      
-      if (difference <= 0) {
-        clearInterval(timer);
-        return;
-      }
-      
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-      
-      setTimeLeft({ days, hours, minutes, seconds });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, []);
-
-  // Load saved subscriptions
-  useEffect(() => {
-    const savedSubscriptions = localStorage.getItem('eventSubscriptions');
-    if (savedSubscriptions) {
-      setSubscriptions(JSON.parse(savedSubscriptions));
+  const events: EventItem[] = [
+    {
+      id: 1,
+      title: "Morning Yoga Masterclass",
+      date: "May 15, 2025 • 8:00 AM",
+      location: "Central Park, New York",
+      participants: 24,
+      image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Yoga+Event",
+      isVirtual: false,
+      recording: false,
+      instructor: "Emma Wilson"
+    },
+    {
+      id: 2,
+      title: "HIIT & Run Challenge",
+      date: "May 18, 2025 • 6:30 PM",
+      location: "Riverside Track",
+      participants: 32,
+      image: "https://placehold.co/600x400/0a0a0a/39FF14?text=HIIT+Event",
+      isVirtual: false,
+      recording: false,
+      instructor: "John Davis"
+    },
+    {
+      id: 3,
+      title: "Virtual Nutrition Workshop",
+      date: "May 20, 2025 • 12:00 PM",
+      location: "Online Zoom Session",
+      participants: 56,
+      image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Nutrition+Workshop",
+      isVirtual: true,
+      recording: true,
+      instructor: "Sarah Johnson"
+    },
+    {
+      id: 4,
+      title: "Strength Training Basics",
+      date: "May 25, 2025 • 4:00 PM",
+      location: "Fitness Center Downtown",
+      participants: 18,
+      image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Strength+Training",
+      isVirtual: false,
+      recording: true,
+      instructor: "Mike Chen"
     }
-  }, []);
-
-  // Save subscriptions when they change
-  useEffect(() => {
-    localStorage.setItem('eventSubscriptions', JSON.stringify(subscriptions));
-  }, [subscriptions]);
-
-  // Mock event data
-  const events: { [key: string]: EventItem[] } = {
-    upcoming: [
-      {
-        id: 1,
-        title: "Virtual HIIT Bootcamp",
-        date: "May 15, 2025",
-        time: "7:00 PM EST",
-        instructor: "Alex Rodriguez",
-        participants: 238,
-        image: "https://placehold.co/600x400/0a0a0a/39FF14?text=HIIT+Bootcamp",
-        isVirtual: true
-      },
-      {
-        id: 2,
-        title: "Marathon Training Group",
-        date: "May 20, 2025",
-        time: "6:30 AM EST",
-        instructor: "Sofia Chen",
-        participants: 124,
-        image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Marathon+Training",
-        isVirtual: false,
-        location: "Central Park, NYC"
-      },
-      {
-        id: 3,
-        title: "Nutrition Workshop",
-        date: "June 2, 2025",
-        time: "1:00 PM EST",
-        instructor: "Dr. James Wilson",
-        participants: 87,
-        image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Nutrition+Workshop",
-        isVirtual: true
-      }
-    ],
-    past: [
-      {
-        id: 4,
-        title: "Strength Training Fundamentals",
-        date: "April 25, 2025",
-        instructor: "Mike Thompson",
-        participants: 312,
-        image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Strength+Training",
-        isVirtual: true,
-        recording: true
-      },
-      {
-        id: 5,
-        title: "Yoga for Recovery",
-        date: "April 18, 2025",
-        instructor: "Emma Powell",
-        participants: 178,
-        image: "https://placehold.co/600x400/0a0a0a/39FF14?text=Yoga+Recovery",
-        isVirtual: true,
-        recording: true
-      },
-      {
-        id: 6,
-        title: "CrossFit Competition",
-        date: "April 10, 2025",
-        location: "Fitness Warehouse, Chicago",
-        participants: 89,
-        image: "https://placehold.co/600x400/0a0a0a/39FF14?text=CrossFit+Competition",
-        isVirtual: false,
-        recording: false
-      }
-    ]
+  ];
+  
+  const handleRegister = (event: EventItem) => {
+    setSelectedEvent(event);
+    setShowRegModal(true);
   };
-
-  const handleReserveSpot = () => {
-    setSelectedEvent('Next Live Event');
-    setRegistrationOpen(true);
-  };
-
-  const handleRegister = (eventId: number) => {
-    const event = [...events.upcoming, ...events.past].find(e => e.id === eventId);
-    if (event) {
-      setSelectedEvent(event.title);
-      setRegistrationOpen(true);
+  
+  const handleSubscribe = (eventId: number) => {
+    if (subscribed.includes(eventId)) {
+      setSubscribed(subscribed.filter(id => id !== eventId));
+      toast.info("Unsubscribed from event notifications");
+    } else {
+      setSubscribed([...subscribed, eventId]);
+      toast.success("You'll be notified about this event");
     }
   };
-
-  const handleToggleSubscription = (eventId: number) => {
-    setSubscriptions(prev => {
-      if (prev.includes(eventId)) {
-        toast.info("Unsubscribed from event notifications");
-        return prev.filter(id => id !== eventId);
-      } else {
-        toast.success("Subscribed to event notifications");
-        return [...prev, eventId];
-      }
+  
+  const handleSuccessfulRegistration = () => {
+    toast.success("Registration successful!", {
+      description: "Your spot has been reserved.",
+      action: {
+        label: "View My Events",
+        onClick: () => navigate("/dashboard"),
+      },
     });
-  };
-
-  const handleEventRegistration = (data: any) => {
-    toast.success(`Registration successful for ${data.eventName}!`, {
-      description: "You will receive a confirmation email shortly."
-    });
-    setRegistrationOpen(false);
+    setShowRegModal(false);
   };
 
   return (
     <PageBackground>
       <Navbar />
-      
-      <main className="container mx-auto px-4 py-10">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-orbitron font-bold mb-3">
-            <span className="text-white">TRAIN TOGETHER, </span>
-            <span className="text-glow-green">WIN TOGETHER</span>
-          </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Join live and virtual fitness events, connect with the community, and elevate your training with expert-led sessions.
-          </p>
-        </div>
-
-        {/* Next event countdown */}
+      <main className="container mx-auto px-4 py-12">
+        <h1 className="text-4xl font-orbitron mb-6 text-center">
+          <span className="text-glow-green">FITNESS </span>
+          <span>EVENTS</span>
+        </h1>
+        
         <div className="glass-card p-6 mb-12">
-          <h2 className="text-2xl font-orbitron mb-4 text-center">Next Live Event</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-6">
-            <div className="bg-black/50 border border-glow-green/30 rounded-md p-3 text-center">
-              <p className="text-3xl font-bold text-glow-green">{timeLeft.days}</p>
-              <p className="text-xs text-gray-400">DAYS</p>
+          <p className="text-center text-gray-300 mb-6">
+            Join live events, connect with fitness experts, and workout with our community.
+            From yoga sessions in the park to virtual nutrition workshops, there's something for everyone.
+          </p>
+          
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="relative w-full md:w-1/2">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                className="w-full bg-black/30 border border-gray-700 rounded-full px-10 py-2 text-sm"
+                placeholder="Search events..."
+              />
             </div>
-            <div className="bg-black/50 border border-glow-green/30 rounded-md p-3 text-center">
-              <p className="text-3xl font-bold text-glow-green">{timeLeft.hours}</p>
-              <p className="text-xs text-gray-400">HOURS</p>
-            </div>
-            <div className="bg-black/50 border border-glow-green/30 rounded-md p-3 text-center">
-              <p className="text-3xl font-bold text-glow-green">{timeLeft.minutes}</p>
-              <p className="text-xs text-gray-400">MINUTES</p>
-            </div>
-            <div className="bg-black/50 border border-glow-green/30 rounded-md p-3 text-center">
-              <p className="text-3xl font-bold text-glow-green">{timeLeft.seconds}</p>
-              <p className="text-xs text-gray-400">SECONDS</p>
+            
+            <div className="flex items-center gap-2">
+              <Filter size={18} className="text-gray-400" />
+              <select className="bg-black/30 border border-gray-700 rounded-full px-4 py-2 text-sm">
+                <option value="all">All Locations</option>
+                <option value="online">Online Only</option>
+                <option value="local">In Person</option>
+              </select>
             </div>
           </div>
-          <div className="flex justify-center">
-            <button 
-              className="btn-glow px-8 py-3 group hover:bg-glow-green/10 transition-all flex items-center"
-              onClick={handleReserveSpot}
-            >
-              <MapPin size={18} className="mr-2" />
-              <span>Reserve Your Spot</span>
-            </button>
-          </div>
         </div>
-
-        {/* Event Tabs */}
-        <div className="mb-8 flex">
-          <button 
-            onClick={() => setActiveTab('upcoming')}
-            className={`px-6 py-3 font-medium ${
-              activeTab === 'upcoming' 
-                ? 'border-b-2 border-glow-green text-glow-green' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Upcoming Events
-          </button>
-          <button 
-            onClick={() => setActiveTab('past')}
-            className={`px-6 py-3 font-medium ${
-              activeTab === 'past' 
-                ? 'border-b-2 border-glow-green text-glow-green' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Past Events
-          </button>
-        </div>
-
-        {/* Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events[activeTab].map(event => (
-            <div key={event.id} className="glow-card group">
-              <div className="relative">
-                <img src={event.image} alt={event.title} className="w-full h-48 object-cover rounded-t-md" />
-                <div className="absolute top-2 right-2">
-                  {event.isVirtual ? (
-                    <span className="bg-glow-green/80 text-black text-xs px-2 py-1 rounded-full">Virtual</span>
-                  ) : (
-                    <span className="bg-glow-red/80 text-white text-xs px-2 py-1 rounded-full">In Person</span>
-                  )}
-                </div>
-                {activeTab === 'past' && event.recording && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="bg-glow-red rounded-full p-3 hover:bg-glow-red/80 transition-colors">
-                      <Play size={24} />
-                    </button>
-                  </div>
-                )}
-              </div>
-              
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-bold">{event.title}</h3>
-                  
-                  {activeTab === 'upcoming' && (
+        
+        <Tabs defaultValue="upcoming" className="w-full">
+          <TabsList className="grid grid-cols-3 mb-8">
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="virtual">Virtual</TabsTrigger>
+            <TabsTrigger value="recordings">Recordings</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="upcoming" className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {events.map(event => (
+                <div key={event.id} className="glass-card overflow-hidden group hover:shadow-[0_0_15px_#39FF14] hover:border-glow-green/30 transition-all duration-300">
+                  <div className="relative h-48">
+                    <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+                    {event.isVirtual && (
+                      <span className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                        Virtual
+                      </span>
+                    )}
                     <button 
-                      onClick={() => handleToggleSubscription(event.id)}
-                      className={`p-2 rounded-full transition-colors ${
-                        subscriptions.includes(event.id)
+                      onClick={() => handleSubscribe(event.id)}
+                      className={`absolute top-2 right-2 p-2 rounded-full ${
+                        subscribed.includes(event.id) 
                           ? "bg-glow-green/20 text-glow-green" 
-                          : "bg-black/30 text-gray-400 hover:text-white"
+                          : "bg-black/50 text-gray-400 hover:text-white"
                       }`}
-                      aria-label={subscriptions.includes(event.id) ? "Unsubscribe" : "Subscribe"}
                     >
-                      {subscriptions.includes(event.id) ? (
-                        <Bell className="h-5 w-5 fill-current animate-bounce" />
-                      ) : (
-                        <Bell className="h-5 w-5" />
-                      )}
+                      {subscribed.includes(event.id) ? <CheckCircle2 size={16} /> : <Bell size={16} />}
                     </button>
-                  )}
-                </div>
-                
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-gray-400">
-                    <Calendar size={16} className="mr-2" />
-                    <span>{event.date}</span>
                   </div>
-                  {event.time && (
-                    <div className="flex items-center text-gray-400">
-                      <Clock size={16} className="mr-2" />
-                      <span>{event.time}</span>
+                  
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-1">{event.title}</h3>
+                    <p className="text-sm text-gray-400 flex items-center gap-2 mb-2">
+                      <Calendar size={14} />
+                      {event.date}
+                    </p>
+                    <p className="text-sm text-gray-400 flex items-center gap-2 mb-3">
+                      {event.isVirtual ? (
+                        <>
+                          <Video size={14} />
+                          {event.location}
+                        </>
+                      ) : (
+                        <>
+                          <MapPin size={14} />
+                          {event.location}
+                        </>
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-400 flex items-center gap-2 mb-3">
+                      <Users size={14} />
+                      {event.participants} registered participants
+                    </p>
+                    
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-sm text-gray-400">By {event.instructor}</span>
+                      <Button 
+                        onClick={() => handleRegister(event)}
+                        className="bg-glow-green hover:bg-glow-green/90 text-black"
+                        size="sm"
+                      >
+                        Reserve Spot
+                      </Button>
                     </div>
-                  )}
-                  {event.location && (
-                    <div className="flex items-center text-gray-400">
-                      <MapPin size={16} className="mr-2" />
-                      <span>{event.location}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center text-gray-400">
-                    <Users size={16} className="mr-2" />
-                    <span>{event.participants} participants</span>
-                  </div>
-                  <div className="flex items-center text-gray-400">
-                    <Award size={16} className="mr-2" />
-                    <span>By {event.instructor}</span>
                   </div>
                 </div>
-                
-                {activeTab === 'upcoming' ? (
-                  <button 
-                    onClick={() => handleRegister(event.id)}
-                    className="w-full py-2 bg-black border border-glow-green text-white rounded-md 
-                    hover:bg-glow-green hover:text-black transition-colors duration-300 flex items-center justify-center"
-                  >
-                    <MapPin size={16} className="mr-2" />
-                    Register Now
-                  </button>
-                ) : event.recording ? (
-                  <button 
-                    className="w-full py-2 bg-black border border-glow-red text-white rounded-md 
-                    hover:bg-glow-red/20 transition-colors duration-300 flex items-center justify-center"
-                  >
-                    <Play size={16} className="mr-2" />
-                    Watch Recording
-                  </button>
-                ) : (
-                  <button 
-                    disabled 
-                    className="w-full py-2 bg-black border border-gray-700 text-gray-500 rounded-md cursor-not-allowed flex items-center justify-center"
-                  >
-                    No Recording Available
-                  </button>
-                )}
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+            
+            <div className="text-center">
+              <Button variant="outline" className="border-white/20 hover:border-glow-green">
+                View More <ArrowRight size={16} className="ml-2" />
+              </Button>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="virtual" className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {events.filter(e => e.isVirtual).map(event => (
+                <div key={event.id} className="glass-card overflow-hidden">
+                  <div className="relative h-48">
+                    <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+                    <span className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                      Virtual
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-1">{event.title}</h3>
+                    <p className="text-sm text-gray-400 mb-3">
+                      <Calendar size={14} className="inline mr-2" />
+                      {event.date}
+                    </p>
+                    <Button 
+                      onClick={() => handleRegister(event)}
+                      className="w-full bg-glow-green hover:bg-glow-green/90 text-black"
+                      size="sm"
+                    >
+                      Join Session
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="recordings" className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {events.filter(e => e.recording).map(event => (
+                <div key={event.id} className="glass-card overflow-hidden">
+                  <div className="relative h-48">
+                    <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      Recording
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-1">{event.title}</h3>
+                    <p className="text-sm text-gray-400 mb-3">
+                      Originally held on {event.date.split("•")[0]}
+                    </p>
+                    <Button 
+                      className="w-full bg-glow-green hover:bg-glow-green/90 text-black"
+                      size="sm"
+                    >
+                      Watch Recording
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
-      
       <Footer />
-      <AiAssistant />
       
-      <EventRegistrationModal 
-        open={registrationOpen}
-        onClose={() => setRegistrationOpen(false)}
-        onRegister={handleEventRegistration}
-        eventName={selectedEvent}
-      />
+      {selectedEvent && (
+        <EventRegistrationModal
+          open={showRegModal}
+          onClose={() => setShowRegModal(false)}
+          event={selectedEvent}
+          onRegister={handleSuccessfulRegistration}
+        />
+      )}
     </PageBackground>
   );
 };

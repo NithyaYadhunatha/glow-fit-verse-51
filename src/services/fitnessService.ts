@@ -1,176 +1,265 @@
-
-import { authService } from './authService';
-
-// Types for fitness data
 export interface WorkoutPlan {
   id: string;
-  name: string;
+  title: string;
   description: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
-  duration: number; // in minutes
-  caloriesBurn: number;
-  equipment: string[];
-  exercises: Exercise[];
-  tags: string[];
-  thumbnail?: string;
-}
-
-export interface Exercise {
-  id: string;
-  name: string;
-  description: string;
-  sets: number;
-  reps: number;
-  rest: number; // in seconds
-  videoUrl?: string;
-  imageUrl?: string;
+  difficulty: string;
+  duration: string;
+  trainer: string;
+  category: string;
+  image: string;
 }
 
 export interface FitnessStats {
-  steps: number;
-  caloriesBurned: number;
-  activeMinutes: number;
   workoutsCompleted: number;
-  streakDays: number;
-  weeklyProgress: number[];
+  minutesExercised: number;
+  caloriesBurned: number;
+  stepsToday: number;
+  weeklyActivity: {
+    day: string;
+    minutes: number;
+  }[];
 }
 
-// Mock data
-const workoutPlans: WorkoutPlan[] = [
-  {
-    id: "1",
-    name: "HIIT Cardio Blast",
-    description: "High intensity interval training to maximize calorie burn",
-    level: "intermediate",
-    duration: 30,
-    caloriesBurn: 350,
-    equipment: ["none"],
-    tags: ["cardio", "fat-loss", "trending"],
-    thumbnail: "https://images.unsplash.com/photo-1549060279-7e168fcee0c2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1050&q=80",
-    exercises: [
-      {
-        id: "e1",
-        name: "Jumping Jacks",
-        description: "Full body exercise to get your heart rate up",
-        sets: 3,
-        reps: 20,
-        rest: 15,
-        imageUrl: "https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?ixlib=rb-4.0.3"
-      },
-      {
-        id: "e2",
-        name: "Burpees",
-        description: "Full body exercise combining a squat, push-up, and jump",
-        sets: 3,
-        reps: 10,
-        rest: 30,
-        imageUrl: "https://images.unsplash.com/photo-1613845205719-8c47720a7457?ixlib=rb-4.0.3"
-      }
-    ]
-  },
-  {
-    id: "2",
-    name: "Surya Namaskar Flow",
-    description: "Traditional Indian yoga flow for total body wellness",
-    level: "beginner",
-    duration: 20,
-    caloriesBurn: 180,
-    equipment: ["yoga mat"],
-    tags: ["yoga", "flexibility", "indian"],
-    thumbnail: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1520&q=80",
-    exercises: [
-      {
-        id: "e3",
-        name: "Pranamasana (Prayer Pose)",
-        description: "Stand at the edge of your mat, keep your feet together and balance your weight equally on both feet",
-        sets: 1,
-        reps: 1,
-        rest: 5,
-        imageUrl: "https://images.unsplash.com/photo-1566501206188-5dd0cf160a0e?ixlib=rb-4.0.3"
-      },
-      {
-        id: "e4",
-        name: "Hasta Uttanasana (Raised Arms Pose)",
-        description: "Breathing in, lift the arms up and back, keeping the biceps close to the ears",
-        sets: 1,
-        reps: 1,
-        rest: 5,
-        imageUrl: "https://images.unsplash.com/photo-1508672019048-805c876b67e2?ixlib=rb-4.0.3"
-      }
-    ]
-  }
-];
+// Mock video data interface
+export interface VideoItem {
+  id: string;
+  title: string;
+  instructor: string;
+  thumbnail: string;
+  duration: string;
+  level: string;
+  category: string;
+}
 
-// User fitness stats
-const userFitnessStats: FitnessStats = {
-  steps: 8743,
-  caloriesBurned: 1256,
-  activeMinutes: 105,
-  workoutsCompleted: 12,
-  streakDays: 7,
-  weeklyProgress: [65, 70, 63, 82, 74, 68, 85]
-};
-
+// Exported service with methods
 export const fitnessService = {
-  // Get all workout plans
+  // Existing methods
   getWorkoutPlans: async (): Promise<WorkoutPlan[]> => {
-    // Simulate network request
-    await new Promise(resolve => setTimeout(resolve, 600));
-    return workoutPlans;
+    // Simulate API call with timeout
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            id: '1',
+            title: '30-Day Full Body Challenge',
+            description: 'Transform your body in just 30 days with this comprehensive workout plan',
+            difficulty: 'Intermediate',
+            duration: '30 days',
+            trainer: 'Alex Johnson',
+            category: 'strength',
+            image: 'https://placehold.co/600x400/0a0a0a/39FF14?text=30+Day+Challenge'
+          },
+          {
+            id: '2',
+            title: 'HIIT Cardio Blast',
+            description: 'Intensive cardio workouts to boost your metabolism and burn calories',
+            difficulty: 'Advanced',
+            duration: '14 days',
+            trainer: 'Samantha Lee',
+            category: 'cardio',
+            image: 'https://placehold.co/600x400/0a0a0a/39FF14?text=HIIT+Cardio'
+          },
+          {
+            id: '3',
+            title: 'Yoga for Beginners',
+            description: 'Start your yoga journey with simple poses and breathing techniques',
+            difficulty: 'Beginner',
+            duration: '21 days',
+            trainer: 'Michael Chen',
+            category: 'yoga',
+            image: 'https://placehold.co/600x400/0a0a0a/39FF14?text=Yoga+Beginners'
+          },
+          {
+            id: '4',
+            title: 'Core Strength Builder',
+            description: 'Focus on building a strong and stable core with targeted exercises',
+            difficulty: 'Intermediate',
+            duration: '14 days',
+            trainer: 'Lisa Rodriguez',
+            category: 'core',
+            image: 'https://placehold.co/600x400/0a0a0a/39FF14?text=Core+Strength'
+          },
+          {
+            id: '5',
+            title: 'Flexibility & Mobility',
+            description: 'Improve your range of motion and prevent injuries with these routines',
+            difficulty: 'Beginner',
+            duration: '28 days',
+            trainer: 'David Kim',
+            category: 'flexibility',
+            image: 'https://placehold.co/600x400/0a0a0a/39FF14?text=Flexibility'
+          }
+        ]);
+      }, 800);
+    });
   },
 
-  // Get workout plan by id
-  getWorkoutPlan: async (id: string): Promise<WorkoutPlan | null> => {
-    // Simulate network request
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const plan = workoutPlans.find(p => p.id === id);
-    return plan || null;
+  getWorkoutPlan: async (id: string): Promise<WorkoutPlan> => {
+    // Simulate API call with timeout
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          id,
+          title: '30-Day Full Body Challenge',
+          description: 'Transform your body in just 30 days with this comprehensive workout plan that targets all major muscle groups. This plan includes a mix of strength training, cardio, and recovery sessions to ensure balanced progress.',
+          difficulty: 'Intermediate',
+          duration: '30 days',
+          trainer: 'Alex Johnson',
+          category: 'strength',
+          image: 'https://placehold.co/600x400/0a0a0a/39FF14?text=30+Day+Challenge'
+        });
+      }, 600);
+    });
   },
 
-  // Get user fitness stats
   getUserStats: async (): Promise<FitnessStats> => {
-    // Simulate network request
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Check if user is logged in
-    if (!authService.isAuthenticated()) {
-      throw new Error("User not authenticated");
-    }
-    
-    return userFitnessStats;
+    // Simulate API call with timeout
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          workoutsCompleted: 24,
+          minutesExercised: 840,
+          caloriesBurned: 6240,
+          stepsToday: 8456,
+          weeklyActivity: [
+            { day: 'Mon', minutes: 45 },
+            { day: 'Tue', minutes: 30 },
+            { day: 'Wed', minutes: 0 },
+            { day: 'Thu', minutes: 60 },
+            { day: 'Fri', minutes: 45 },
+            { day: 'Sat', minutes: 90 },
+            { day: 'Sun', minutes: 30 }
+          ]
+        });
+      }, 700);
+    });
   },
 
-  // Log completed workout
-  logWorkout: async (workoutId: string, duration: number, caloriesBurned: number): Promise<boolean> => {
-    // Simulate network request
-    await new Promise(resolve => setTimeout(resolve, 700));
-    
-    // Check if user is logged in
-    if (!authService.isAuthenticated()) {
-      throw new Error("User not authenticated");
-    }
-    
-    // Update stats (in a real app, this would be server-side)
-    userFitnessStats.workoutsCompleted += 1;
-    userFitnessStats.caloriesBurned += caloriesBurned;
-    userFitnessStats.activeMinutes += Math.floor(duration);
-    
-    return true;
+  logWorkout: async (workoutId: string, duration: number, caloriesBurned: number) => {
+    // Simulate API call with timeout
+    return new Promise((resolve) => {
+      console.log(`Logging workout: ${workoutId}, duration: ${duration}, calories: ${caloriesBurned}`);
+      setTimeout(() => {
+        resolve({ success: true });
+      }, 500);
+    });
   },
 
-  // Update daily step count
-  updateSteps: async (steps: number): Promise<number> => {
-    // Simulate network request
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Check if user is logged in
-    if (!authService.isAuthenticated()) {
-      throw new Error("User not authenticated");
-    }
-    
-    // Update steps (in a real app, this would be server-side)
-    userFitnessStats.steps = steps;
-    
-    return steps;
+  updateSteps: async (steps: number) => {
+    // Simulate API call with timeout
+    return new Promise((resolve) => {
+      console.log(`Updating steps: ${steps}`);
+      setTimeout(() => {
+        resolve({ success: true });
+      }, 400);
+    });
+  },
+
+  // Add the missing getVideos method
+  getVideos: async (category: string, filters: {time: string; intensity: string; equipment: string}): Promise<VideoItem[]> => {
+    // Simulate API call with timeout
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Mock data for videos
+        const allVideos = [
+          {
+            id: 'v1',
+            title: 'Full Body HIIT',
+            instructor: 'Alex Johnson',
+            thumbnail: 'https://placehold.co/600x400/0a0a0a/39FF14?text=Full+Body+HIIT',
+            duration: '30 min',
+            level: 'Advanced',
+            category: 'hiit'
+          },
+          {
+            id: 'v2',
+            title: 'Beginner Yoga Flow',
+            instructor: 'Samantha Lee',
+            thumbnail: 'https://placehold.co/600x400/0a0a0a/39FF14?text=Beginner+Yoga',
+            duration: '20 min',
+            level: 'Beginner',
+            category: 'yoga'
+          },
+          {
+            id: 'v3',
+            title: 'Strength Training Basics',
+            instructor: 'Michael Chen',
+            thumbnail: 'https://placehold.co/600x400/0a0a0a/39FF14?text=Strength+Training',
+            duration: '45 min',
+            level: 'Intermediate',
+            category: 'strength'
+          },
+          {
+            id: 'v4',
+            title: 'Cardio Kickboxing',
+            instructor: 'Lisa Rodriguez',
+            thumbnail: 'https://placehold.co/600x400/0a0a0a/39FF14?text=Cardio+Kickboxing',
+            duration: '35 min',
+            level: 'Intermediate',
+            category: 'cardio'
+          },
+          {
+            id: 'v5',
+            title: 'Core Workout',
+            instructor: 'David Kim',
+            thumbnail: 'https://placehold.co/600x400/0a0a0a/39FF14?text=Core+Workout',
+            duration: '15 min',
+            level: 'Beginner',
+            category: 'core'
+          },
+          {
+            id: 'v6',
+            title: 'Advanced Pilates',
+            instructor: 'Emma Wilson',
+            thumbnail: 'https://placehold.co/600x400/0a0a0a/39FF14?text=Advanced+Pilates',
+            duration: '40 min',
+            level: 'Advanced',
+            category: 'pilates'
+          }
+        ];
+        
+        // Filter based on category and other filters
+        let filteredVideos = [...allVideos];
+        
+        if (category !== 'all') {
+          filteredVideos = filteredVideos.filter(video => video.category === category);
+        }
+        
+        // Apply additional filters if they are not set to 'all'
+        if (filters.time !== 'all') {
+          // Simple filtering logic - can be enhanced based on requirements
+          const timeMap: {[key: string]: number[]} = {
+            'short': [0, 20],
+            'medium': [21, 40],
+            'long': [41, 100]
+          };
+          
+          if (filters.time in timeMap) {
+            const [min, max] = timeMap[filters.time];
+            filteredVideos = filteredVideos.filter(video => {
+              const minutes = parseInt(video.duration);
+              return minutes >= min && minutes <= max;
+            });
+          }
+        }
+        
+        if (filters.intensity !== 'all') {
+          filteredVideos = filteredVideos.filter(video => {
+            // Map intensity filter to level
+            const intensityMap: {[key: string]: string} = {
+              'low': 'Beginner',
+              'medium': 'Intermediate',
+              'high': 'Advanced'
+            };
+            
+            return video.level === intensityMap[filters.intensity];
+          });
+        }
+        
+        // Note: Equipment filter would be implemented similarly if video data included equipment info
+        
+        resolve(filteredVideos);
+      }, 800);
+    });
   }
 };
