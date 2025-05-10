@@ -17,6 +17,9 @@ import Auth from "./pages/Auth";
 import Wellness from "./pages/Wellness";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
+import ExplorePlans from "./pages/ExplorePlans";
+import StartWorkout from "./pages/StartWorkout";
+import { PageBackground } from "./components/ui/PageBackground";
 import { authService } from "./services/authService";
 import { toast } from "sonner";
 
@@ -60,6 +63,9 @@ const App = () => {
             <Route path="/nutrition" element={<Nutrition />} />
             <Route path="/events" element={<Events />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/explore-plans" element={<ExplorePlans />} />
+            <Route path="/start-workout" element={<StartWorkout />} />
+            <Route path="/start-workout/:planId" element={<StartWorkout />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />

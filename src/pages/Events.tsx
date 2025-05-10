@@ -2,12 +2,31 @@
 import { Navbar } from "../components/layout/Navbar";
 import { Footer } from "../components/layout/Footer";
 import { AiAssistant } from "../components/ui/AiAssistant";
-import { Calendar, Clock, MapPin, Play, Users, Award } from "lucide-react";
+import { PageBackground } from "../components/ui/PageBackground";
+import { Calendar, Clock, MapPin, Play, Users, Award, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
+import { EventRegistrationModal } from "../components/events/EventRegistrationModal";
+import { toast } from "sonner";
+
+interface EventItem {
+  id: number;
+  title: string;
+  date: string;
+  time?: string;
+  instructor: string;
+  participants: number;
+  image: string;
+  isVirtual: boolean;
+  location?: string;
+  recording?: boolean;
+}
 
 const Events = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<string>('');
+  const [subscriptions, setSubscriptions] = useState<number[]>([]);
   
   // Calculate countdown for next event
   useEffect(() => {
@@ -35,8 +54,21 @@ const Events = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Load saved subscriptions
+  useEffect(() => {
+    const savedSubscriptions = localStorage.getItem('eventSubscriptions');
+    if (savedSubscriptions) {
+      setSubscriptions(JSON.parse(savedSubscriptions));
+    }
+  }, []);
+
+  // Save subscriptions when they change
+  useEffect(() => {
+    localStorage.setItem('eventSubscriptions', JSON.stringify(subscriptions));
+  }, [subscriptions]);
+
   // Mock event data
-  const events = {
+  const events: { [key: string]: EventItem[] } = {
     upcoming: [
       {
         id: 1,
@@ -104,8 +136,40 @@ const Events = () => {
     ]
   };
 
+  const handleReserveSpot = () => {
+    setSelectedEvent('Next Live Event');
+    setRegistrationOpen(true);
+  };
+
+  const handleRegister = (eventId: number) => {
+    const event = [...events.upcoming, ...events.past].find(e => e.id === eventId);
+    if (event) {
+      setSelectedEvent(event.title);
+      setRegistrationOpen(true);
+    }
+  };
+
+  const handleToggleSubscription = (eventId: number) => {
+    setSubscriptions(prev => {
+      if (prev.includes(eventId)) {
+        toast.info("Unsubscribed from event notifications");
+        return prev.filter(id => id !== eventId);
+      } else {
+        toast.success("Subscribed to event notifications");
+        return [...prev, eventId];
+      }
+    });
+  };
+
+  const handleEventRegistration = (data: any) => {
+    toast.success(`Registration successful for ${data.eventName}!`, {
+      description: "You will receive a confirmation email shortly."
+    });
+    setRegistrationOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <PageBackground>
       <Navbar />
       
       <main className="container mx-auto px-4 py-10">
@@ -141,7 +205,11 @@ const Events = () => {
             </div>
           </div>
           <div className="flex justify-center">
-            <button className="btn-glow px-8 py-3 group hover:bg-glow-green/10 transition-all">
+            <button 
+              className="btn-glow px-8 py-3 group hover:bg-glow-green/10 transition-all flex items-center"
+              onClick={handleReserveSpot}
+            >
+              <MapPin size={18} className="mr-2" />
               <span>Reserve Your Spot</span>
             </button>
           </div>
@@ -173,7 +241,7 @@ const Events = () => {
 
         {/* Events Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events[activeTab as keyof typeof events].map(event => (
+          {events[activeTab].map(event => (
             <div key={event.id} className="glow-card group">
               <div className="relative">
                 <img src={event.image} alt={event.title} className="w-full h-48 object-cover rounded-t-md" />
@@ -194,7 +262,28 @@ const Events = () => {
               </div>
               
               <div className="p-5">
-                <h3 className="text-xl font-bold mb-2">{event.title}</h3>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-xl font-bold">{event.title}</h3>
+                  
+                  {activeTab === 'upcoming' && (
+                    <button 
+                      onClick={() => handleToggleSubscription(event.id)}
+                      className={`p-2 rounded-full transition-colors ${
+                        subscriptions.includes(event.id)
+                          ? "bg-glow-green/20 text-glow-green" 
+                          : "bg-black/30 text-gray-400 hover:text-white"
+                      }`}
+                      aria-label={subscriptions.includes(event.id) ? "Unsubscribe" : "Subscribe"}
+                    >
+                      {subscriptions.includes(event.id) ? (
+                        <Bell className="h-5 w-5 fill-current animate-bounce" />
+                      ) : (
+                        <Bell className="h-5 w-5" />
+                      )}
+                    </button>
+                  )}
+                </div>
+                
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-gray-400">
                     <Calendar size={16} className="mr-2" />
@@ -223,17 +312,27 @@ const Events = () => {
                 </div>
                 
                 {activeTab === 'upcoming' ? (
-                  <button className="w-full py-2 bg-black border border-glow-green text-white rounded-md 
-                  hover:bg-glow-green hover:text-black transition-colors duration-300">
+                  <button 
+                    onClick={() => handleRegister(event.id)}
+                    className="w-full py-2 bg-black border border-glow-green text-white rounded-md 
+                    hover:bg-glow-green hover:text-black transition-colors duration-300 flex items-center justify-center"
+                  >
+                    <MapPin size={16} className="mr-2" />
                     Register Now
                   </button>
                 ) : event.recording ? (
-                  <button className="w-full py-2 bg-black border border-glow-red text-white rounded-md 
-                  hover:bg-glow-red/20 transition-colors duration-300">
+                  <button 
+                    className="w-full py-2 bg-black border border-glow-red text-white rounded-md 
+                    hover:bg-glow-red/20 transition-colors duration-300 flex items-center justify-center"
+                  >
+                    <Play size={16} className="mr-2" />
                     Watch Recording
                   </button>
                 ) : (
-                  <button disabled className="w-full py-2 bg-black border border-gray-700 text-gray-500 rounded-md cursor-not-allowed">
+                  <button 
+                    disabled 
+                    className="w-full py-2 bg-black border border-gray-700 text-gray-500 rounded-md cursor-not-allowed flex items-center justify-center"
+                  >
                     No Recording Available
                   </button>
                 )}
@@ -245,7 +344,14 @@ const Events = () => {
       
       <Footer />
       <AiAssistant />
-    </div>
+      
+      <EventRegistrationModal 
+        open={registrationOpen}
+        onClose={() => setRegistrationOpen(false)}
+        onRegister={handleEventRegistration}
+        eventName={selectedEvent}
+      />
+    </PageBackground>
   );
 };
 

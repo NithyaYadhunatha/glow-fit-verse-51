@@ -3,14 +3,22 @@ import { useState, useEffect } from 'react';
 import { Navbar } from "../components/layout/Navbar";
 import { Footer } from "../components/layout/Footer";
 import { AiAssistant } from "../components/ui/AiAssistant";
+import { PageBackground } from "../components/ui/PageBackground";
+import { AddMealModal } from "../components/nutrition/AddMealModal";
+import { TrackIntakeModal } from "../components/nutrition/TrackIntakeModal";
 import { Utensils, Calculator, PlusCircle, Activity } from "lucide-react";
 import { nutritionService, MealPlan } from "@/services/nutritionService";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const Nutrition = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'weight-loss' | 'muscle-gain' | 'athletic-performance'>('weight-loss');
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [customMealModalOpen, setCustomMealModalOpen] = useState(false);
+  const [trackIntakeModalOpen, setTrackIntakeModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     age: 30,
     gender: 'Male',
@@ -24,6 +32,10 @@ const Nutrition = () => {
     protein: 140,
     carbs: 250,
     fats: 65
+  });
+  const [customMeals, setCustomMeals] = useState<any[]>(() => {
+    const saved = localStorage.getItem('customMeals');
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Fetch meal plans when component mounts or active tab changes
@@ -43,6 +55,11 @@ const Nutrition = () => {
     
     fetchMealPlans();
   }, [activeTab]);
+
+  // Save custom meals to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('customMeals', JSON.stringify(customMeals));
+  }, [customMeals]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -109,8 +126,21 @@ const Nutrition = () => {
     toast.success("Calorie needs calculated!");
   };
 
-  const handleAddCustomMeal = () => {
-    toast.info("Add custom meal feature coming soon!");
+  const handleAddCustomMeal = (mealData: any) => {
+    const newMeal = {
+      ...mealData,
+      id: `meal-${Date.now()}`,
+      createdAt: new Date()
+    };
+    
+    setCustomMeals(prev => [newMeal, ...prev]);
+    setCustomMealModalOpen(false);
+    toast.success(`${mealData.name} added to meal plan!`);
+  };
+
+  const handleSaveIntake = (items: any[]) => {
+    toast.success("Food intake logged successfully!");
+    setTrackIntakeModalOpen(false);
   };
 
   const handleEditMeal = (meal: any) => {
@@ -122,7 +152,7 @@ const Nutrition = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <PageBackground>
       <Navbar />
       
       <main className="container mx-auto px-4 py-10">
@@ -209,29 +239,96 @@ const Nutrition = () => {
                     </div>
                   </div>
                   <div className="flex justify-between">
-                    <button 
+                    <Button 
+                      variant="ghost"
+                      size="sm"
                       className="text-sm text-gray-300 hover:text-white"
                       onClick={() => handleEditMeal(meal)}
                     >
                       Edit
-                    </button>
-                    <button 
+                    </Button>
+                    <Button 
+                      variant="ghost"
+                      size="sm"
                       className="text-sm text-gray-300 hover:text-white"
                       onClick={() => handleMealDetails(meal)}
                     >
                       Details
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
-              <div 
-                className="glow-card flex items-center justify-center p-6 cursor-pointer hover:border-glow-green"
-                onClick={handleAddCustomMeal}
+              
+              <Button 
+                className="glow-card flex items-center justify-center p-6 h-full cursor-pointer hover:border-glow-green"
+                variant="ghost"
+                onClick={() => setCustomMealModalOpen(true)}
               >
                 <div className="text-center">
                   <PlusCircle size={40} className="mx-auto mb-2 text-glow-green opacity-70" />
                   <p className="text-gray-400">Add Custom Meal</p>
                 </div>
+              </Button>
+            </div>
+          )}
+
+          {/* Custom Meals Section */}
+          {customMeals.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-xl font-orbitron mb-4">
+                <span className="text-white">MY CUSTOM </span>
+                <span className="text-glow-green">MEALS</span>
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {customMeals.map((meal) => (
+                  <div 
+                    key={meal.id} 
+                    className="glow-card p-6 group hover:border-glow-green transition-all duration-300 animate-fade-in"
+                  >
+                    <h3 className="text-xl font-semibold mb-2">{meal.name}</h3>
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      <div className="bg-black/30 p-2 rounded-md">
+                        <p className="text-xs text-gray-400">Calories</p>
+                        <p className="text-lg font-bold">{meal.calories}</p>
+                      </div>
+                      <div className="bg-black/30 p-2 rounded-md">
+                        <p className="text-xs text-gray-400">Protein</p>
+                        <p className="text-lg font-bold">{meal.protein}g</p>
+                      </div>
+                      <div className="bg-black/30 p-2 rounded-md">
+                        <p className="text-xs text-gray-400">Carbs</p>
+                        <p className="text-lg font-bold">{meal.carbs}g</p>
+                      </div>
+                      <div className="bg-black/30 p-2 rounded-md">
+                        <p className="text-xs text-gray-400">Fats</p>
+                        <p className="text-lg font-bold">{meal.fats}g</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <Button 
+                        variant="ghost"
+                        size="sm"
+                        className="text-sm text-gray-300 hover:text-white"
+                        onClick={() => {
+                          // Remove meal from custom meals
+                          setCustomMeals(customMeals.filter(m => m.id !== meal.id));
+                          toast.info("Meal removed");
+                        }}
+                      >
+                        Remove
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        size="sm"
+                        className="text-sm text-gray-300 hover:text-white"
+                        onClick={() => handleMealDetails(meal)}
+                      >
+                        Details
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -323,25 +420,32 @@ const Nutrition = () => {
               </div>
             </div>
             <div className="flex justify-center mt-4">
-              <button className="btn-glow px-8 py-3" onClick={handleCalculate}>Calculate</button>
+              <Button 
+                className="bg-glow-green text-black hover:bg-glow-green/80 px-8 py-3"
+                onClick={handleCalculate}
+              >
+                Calculate
+              </Button>
             </div>
             <div className="mt-6 p-4 bg-glow-green/5 border border-glow-green/30 rounded-lg">
-              <div className="flex justify-between items-center">
-                <div>
+              <div className="flex flex-col md:flex-row justify-between items-center md:items-center">
+                <div className="mb-4 md:mb-0">
                   <p className="text-sm text-gray-400">Daily Calories Needed:</p>
                   <p className="text-3xl font-bold text-white">{calorieResult.calories.toLocaleString()}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-400">Protein Target:</p>
-                  <p className="text-xl font-bold text-white">{calorieResult.protein}g</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-400">Carbs Target:</p>
-                  <p className="text-xl font-bold text-white">{calorieResult.carbs}g</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-400">Fats Target:</p>
-                  <p className="text-xl font-bold text-white">{calorieResult.fats}g</p>
+                <div className="flex gap-6">
+                  <div>
+                    <p className="text-sm text-gray-400">Protein Target:</p>
+                    <p className="text-xl font-bold text-white">{calorieResult.protein}g</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Carbs Target:</p>
+                    <p className="text-xl font-bold text-white">{calorieResult.carbs}g</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Fats Target:</p>
+                    <p className="text-xl font-bold text-white">{calorieResult.fats}g</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -355,37 +459,59 @@ const Nutrition = () => {
               <Activity className="inline-block mr-2 text-glow-green" size={24} />
               Food Tracker
             </h2>
-            <div>
-              <button 
-                className="btn-red mr-3"
-                onClick={() => toast.info("Track intake feature coming soon!")}
+            <div className="flex flex-wrap gap-3">
+              <Button 
+                variant="outline" 
+                className="border-glow-red/50 text-glow-red hover:bg-glow-red/10"
+                onClick={() => setTrackIntakeModalOpen(true)}
               >
-                <PlusCircle size={16} className="mr-1 inline-block" /> Track Intake
-              </button>
-              <button 
-                className="btn-glow"
-                onClick={() => toast.info("Add meal feature coming soon!")}
+                <PlusCircle size={16} className="mr-1" /> Track Intake
+              </Button>
+              <Button 
+                className="bg-glow-green text-black hover:bg-glow-green/80"
+                onClick={() => setCustomMealModalOpen(true)}
               >
-                <PlusCircle size={16} className="mr-1 inline-block" /> Add Meal
-              </button>
+                <PlusCircle size={16} className="mr-1" /> Add Meal
+              </Button>
             </div>
           </div>
           
           <div className="glass-card p-6 text-center">
             <p className="text-gray-400 mb-4">Track your daily food intake and monitor your nutrition goals</p>
-            <button 
-              className="btn-glow"
-              onClick={() => toast.info("Food tracking feature coming soon!")}
+            <Button 
+              className="bg-glow-green text-black hover:bg-glow-green/80"
+              onClick={() => {
+                const isLoggedIn = localStorage.getItem('isAuthenticated') === 'true';
+                if (isLoggedIn) {
+                  setTrackIntakeModalOpen(true);
+                } else {
+                  toast.error("You need to log in to track your meals");
+                  navigate('/login');
+                }
+              }}
             >
+              <Activity size={16} className="mr-2" />
               Start Tracking Today
-            </button>
+            </Button>
           </div>
         </div>
       </main>
       
       <Footer />
       <AiAssistant />
-    </div>
+      
+      <AddMealModal
+        open={customMealModalOpen}
+        onClose={() => setCustomMealModalOpen(false)}
+        onSave={handleAddCustomMeal}
+      />
+      
+      <TrackIntakeModal
+        open={trackIntakeModalOpen}
+        onClose={() => setTrackIntakeModalOpen(false)}
+        onSave={handleSaveIntake}
+      />
+    </PageBackground>
   );
 };
 

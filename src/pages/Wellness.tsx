@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 import { Navbar } from "../components/layout/Navbar";
 import { Footer } from "../components/layout/Footer";
 import { AiAssistant } from "../components/ui/AiAssistant";
+import { PageBackground } from "../components/ui/PageBackground";
 import { WellnessHero } from "../components/wellness/WellnessHero";
 import { SleepTracker } from "../components/wellness/SleepTracker";
 import { StressInsights } from "../components/wellness/StressInsights";
 import { MeditationLibrary } from "../components/wellness/MeditationLibrary";
 import { MoodTracker } from "../components/wellness/MoodTracker";
+import { SleepLogModal } from "../components/wellness/SleepLogModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Moon, Activity, HeartPulse } from "lucide-react";
 import { wellnessService } from "@/services/wellnessService";
@@ -15,9 +17,10 @@ import { toast } from "sonner";
 
 const Wellness = () => {
   const [activeTab, setActiveTab] = useState('sleep');
-  const [sleepData, setSleepData] = useState([]);
-  const [stressData, setStressData] = useState([]);
-  const [moodData, setMoodData] = useState([]);
+  const [sleepData, setSleepData] = useState<any[]>([]);
+  const [stressData, setStressData] = useState<any[]>([]);
+  const [moodData, setMoodData] = useState<any[]>([]);
+  const [isSleepLogOpen, setIsSleepLogOpen] = useState(false);
   const [loading, setLoading] = useState({
     sleep: true,
     stress: true,
@@ -65,8 +68,57 @@ const Wellness = () => {
     }
   };
 
+  const handleLogSleep = async (sleepData: any) => {
+    try {
+      await wellnessService.logSleep(
+        calculateDuration(sleepData.sleepStart, sleepData.wakeTime), 
+        sleepData.quality
+      );
+      toast.success("Sleep data logged successfully");
+      
+      // Refetch data to update the UI
+      const updatedData = await wellnessService.getSleepData();
+      setSleepData(updatedData);
+      setIsSleepLogOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to log sleep data");
+    }
+  };
+
+  const handleLogMood = async (mood: any, energy: any, notes: any) => {
+    try {
+      await wellnessService.logMood(mood, energy, notes);
+      toast.success("Mood data logged successfully");
+      
+      // Refetch data to update the UI
+      const updatedData = await wellnessService.getMoodData();
+      setMoodData(updatedData);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to log mood data");
+    }
+  };
+
+  // Helper function to calculate sleep duration
+  const calculateDuration = (start: string, end: string): number => {
+    // Simple calculation for demo purposes
+    const [startHours, startMinutes] = start.split(':').map(Number);
+    const [endHours, endMinutes] = end.split(':').map(Number);
+    
+    let duration = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
+    
+    // Handle overnight sleep
+    if (duration < 0) {
+      duration += 24 * 60;
+    }
+    
+    // Return duration in hours
+    return Math.round(duration / 60 * 10) / 10;
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <PageBackground>
       <Navbar />
       <main>
         <WellnessHero />
@@ -92,42 +144,12 @@ const Wellness = () => {
               <SleepTracker 
                 data={sleepData} 
                 loading={loading.sleep} 
-                onLogSleep={(duration, quality) => {
-                  wellnessService.logSleep(duration, quality)
-                    .then(success => {
-                      if (success) {
-                        toast.success("Sleep data logged successfully");
-                        // Refetch data to update the UI
-                        wellnessService.getSleepData().then(data => {
-                          setSleepData(data);
-                        });
-                      }
-                    })
-                    .catch(err => {
-                      console.error(err);
-                      toast.error("Failed to log sleep data");
-                    });
-                }}
+                onLogSleep={() => setIsSleepLogOpen(true)}
               />
               <MoodTracker 
                 data={moodData} 
                 loading={loading.mood} 
-                onLogMood={(mood, energy, notes) => {
-                  wellnessService.logMood(mood, energy, notes)
-                    .then(success => {
-                      if (success) {
-                        toast.success("Mood data logged successfully");
-                        // Refetch data to update the UI
-                        wellnessService.getMoodData().then(data => {
-                          setMoodData(data);
-                        });
-                      }
-                    })
-                    .catch(err => {
-                      console.error(err);
-                      toast.error("Failed to log mood data");
-                    });
-                }}
+                onLogMood={handleLogMood}
               />
             </TabsContent>
             
@@ -152,7 +174,13 @@ const Wellness = () => {
       </main>
       <Footer />
       <AiAssistant />
-    </div>
+      
+      <SleepLogModal 
+        open={isSleepLogOpen}
+        onClose={() => setIsSleepLogOpen(false)}
+        onSubmit={handleLogSleep}
+      />
+    </PageBackground>
   );
 };
 

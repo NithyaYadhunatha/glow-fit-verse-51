@@ -1,209 +1,124 @@
 
-import { useState } from 'react';
-import { Play, Clock, Flame, Trophy } from 'lucide-react';
+import React from "react";
+import { fitnessService } from "@/services/fitnessService";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent } from "@/components/ui/card";
+import { Heart, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
-// Types
-type VideoProps = {
-  id: string;
-  title: string;
-  thumbnail: string;
-  duration: string;
-  calories: number;
-  intensity: 'easy' | 'medium' | 'hard';
-  equipment: 'none' | 'minimal' | 'full';
-  category: string;
-  aiRecommended?: boolean;
-};
-
-type VideoGridProps = {
+interface VideoGridProps {
   activeCategory: string;
   filters: {
     time: string;
     intensity: string;
     equipment: string;
   };
-};
+  favorites?: string[];
+  onToggleFavorite?: (id: string) => void;
+}
 
-export const VideoGrid = ({ activeCategory, filters }: VideoGridProps) => {
-  // Sample video data
-  const [videos] = useState<VideoProps[]>([
-    {
-      id: 'v1',
-      title: 'Full Body HIIT - No Equipment Needed',
-      thumbnail: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      duration: '28:45',
-      calories: 320,
-      intensity: 'hard',
-      equipment: 'none',
-      category: 'cardio',
-      aiRecommended: true,
-    },
-    {
-      id: 'v2',
-      title: 'Strength Training for Beginners',
-      thumbnail: 'https://images.unsplash.com/photo-1534258936925-c58bed479fcb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      duration: '15:30',
-      calories: 220,
-      intensity: 'medium',
-      equipment: 'minimal',
-      category: 'strength',
-    },
-    {
-      id: 'v3',
-      title: 'Dynamic Stretching Routine',
-      thumbnail: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      duration: '12:15',
-      calories: 120,
-      intensity: 'easy',
-      equipment: 'none',
-      category: 'mobility',
-      aiRecommended: true,
-    },
-    {
-      id: 'v4',
-      title: 'Advanced Kettlebell Workout',
-      thumbnail: 'https://images.unsplash.com/photo-1517344884509-240c41fa58a7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      duration: '35:10',
-      calories: 450,
-      intensity: 'hard',
-      equipment: 'minimal',
-      category: 'strength',
-    },
-    {
-      id: 'v5',
-      title: 'Recovery Yoga for Athletes',
-      thumbnail: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      duration: '18:20',
-      calories: 150,
-      intensity: 'easy',
-      equipment: 'none',
-      category: 'recovery',
-    },
-    {
-      id: 'v6',
-      title: 'Basketball Skills Training',
-      thumbnail: 'https://images.unsplash.com/photo-1504450758481-7338eba7524a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      duration: '25:45',
-      calories: 280,
-      intensity: 'medium',
-      equipment: 'minimal',
-      category: 'sport',
-    },
-  ]);
-
-  // Filter videos based on selected category and filters
-  const filteredVideos = videos.filter(video => {
-    // Category filter
-    if (activeCategory !== 'all' && video.category !== activeCategory) {
-      return false;
-    }
-
-    // Time filter
-    if (filters.time !== 'all') {
-      const duration = parseInt(video.duration.split(':')[0]);
-      if (filters.time === 'short' && duration >= 15) return false;
-      if (filters.time === 'medium' && (duration < 15 || duration > 30)) return false;
-      if (filters.time === 'long' && duration <= 30) return false;
-    }
-
-    // Intensity filter
-    if (filters.intensity !== 'all' && video.intensity !== filters.intensity) {
-      return false;
-    }
-
-    // Equipment filter
-    if (filters.equipment !== 'all' && video.equipment !== filters.equipment) {
-      return false;
-    }
-
-    return true;
+export const VideoGrid: React.FC<VideoGridProps> = ({ 
+  activeCategory, 
+  filters,
+  favorites = [],
+  onToggleFavorite = () => {}
+}) => {
+  const navigate = useNavigate();
+  const { data: videos, isLoading } = useQuery({
+    queryKey: ['videos', activeCategory, filters],
+    queryFn: () => fitnessService.getVideos(activeCategory, filters),
   });
 
-  // Function to render difficulty indicator
-  const renderDifficulty = (intensity: 'easy' | 'medium' | 'hard') => {
-    const colors = {
-      easy: 'bg-green-500',
-      medium: 'bg-yellow-500',
-      hard: 'bg-glow-red',
-    };
-
-    return (
-      <div className="flex items-center gap-1">
-        <div className={`w-2 h-2 rounded-full ${colors[intensity]}`}></div>
-        <span className="text-xs capitalize">{intensity}</span>
-      </div>
-    );
+  const handleStartWorkout = (videoId: string) => {
+    navigate(`/start-workout/${videoId}`);
   };
 
-  return (
-    <section className="py-12">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold glow-text">Available Videos</h2>
-          <div className="text-gray-400">
-            {filteredVideos.length} videos found
-          </div>
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-gray-400">Loading workout videos...</p>
         </div>
-
-        {filteredVideos.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-xl text-gray-400">No videos match your filters</p>
-            <button className="mt-4 btn-glow">Reset Filters</button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVideos.map((video) => (
-              <div 
-                key={video.id} 
-                className="glass-card overflow-hidden group hover:border-glow-green/50 hover:shadow-glow-green/20 transition-all duration-300"
-              >
-                <div className="relative">
-                  {/* Thumbnail */}
-                  <img 
-                    src={video.thumbnail} 
-                    alt={video.title} 
-                    className="w-full h-48 object-cover"
-                  />
-                  
-                  {/* Play button overlay */}
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="w-16 h-16 bg-black/70 rounded-full flex items-center justify-center border-2 border-glow-red hover:border-glow-green hover:scale-110 transition-all duration-300">
-                      <Play size={28} className="text-white ml-1" />
-                    </button>
-                  </div>
-                  
-                  {/* Duration */}
-                  <div className="absolute bottom-3 right-3 bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-                    <Clock size={12} />
-                    {video.duration}
-                  </div>
-                  
-                  {/* AI Recommended badge */}
-                  {video.aiRecommended && (
-                    <div className="absolute top-3 left-3 bg-glow-green/90 text-black px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
-                      <Trophy size={12} />
-                      AI Pick
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-2 line-clamp-2">{video.title}</h3>
-                  
-                  <div className="flex justify-between items-center text-sm text-gray-300">
-                    <div className="flex items-center gap-1">
-                      <Flame size={14} className="text-glow-red" />
-                      <span>{video.calories} cal</span>
-                    </div>
-                    
-                    {renderDifficulty(video.intensity)}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-    </section>
+    );
+  }
+
+  if (!videos || videos.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="glass-card p-8 text-center">
+          <h3 className="text-xl font-bold mb-2">No Videos Found</h3>
+          <p className="text-gray-400">
+            Try adjusting your filters or category to find more workouts.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {videos.map((video) => (
+          <Card key={video.id} className="glass-card overflow-hidden border border-white/10 group hover:shadow-[0_0_15px_#39FF14] hover:border-glow-green/30 transition-all duration-300">
+            <div className="relative">
+              <img 
+                src={video.thumbnail} 
+                alt={video.title}
+                className="w-full h-40 object-cover"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <Play 
+                  size={48} 
+                  className="text-glow-green cursor-pointer"
+                  onClick={() => handleStartWorkout(video.id)}
+                />
+              </div>
+              <div className="absolute top-2 right-2">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(video.id);
+                  }}
+                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
+                    favorites.includes(video.id) 
+                      ? "bg-glow-red/20 text-glow-red" 
+                      : "bg-black/50 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <Heart size={16} className={favorites.includes(video.id) ? "fill-current" : ""} />
+                </button>
+              </div>
+              <div className="absolute bottom-2 left-2">
+                <span className="bg-glow-green/80 text-black text-xs px-2 py-1 rounded-full">
+                  {video.duration}
+                </span>
+              </div>
+            </div>
+            <CardContent className="p-4">
+              <h3 className="font-bold mb-1">{video.title}</h3>
+              <p className="text-gray-400 text-sm mb-3">{video.instructor}</p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="bg-black/30 text-gray-300 text-xs px-2 py-1 rounded-full">
+                  {video.level}
+                </span>
+                <span className="bg-black/30 text-gray-300 text-xs px-2 py-1 rounded-full">
+                  {video.category}
+                </span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full border-glow-green text-glow-green hover:bg-glow-green hover:text-black transition-all"
+                onClick={() => handleStartWorkout(video.id)}
+              >
+                Start Training
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 };
